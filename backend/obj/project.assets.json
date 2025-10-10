@@ -4856,19 +4856,19 @@
     ]
   },
   "packageFolders": {
-    "/home/ecem/.nuget/packages/": {}
+    "/home/runner/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/ecem/GraduationProjectManagement/backend/GraduationProjectManagement.csproj",
+      "projectUniqueName": "/home/runner/work/graduation-project-management-system/graduation-project-management-system/backend/GraduationProjectManagement.csproj",
       "projectName": "GraduationProjectManagement",
-      "projectPath": "/home/ecem/GraduationProjectManagement/backend/GraduationProjectManagement.csproj",
-      "packagesPath": "/home/ecem/.nuget/packages/",
-      "outputPath": "/home/ecem/GraduationProjectManagement/backend/obj/",
+      "projectPath": "/home/runner/work/graduation-project-management-system/graduation-project-management-system/backend/GraduationProjectManagement.csproj",
+      "packagesPath": "/home/runner/.nuget/packages/",
+      "outputPath": "/home/runner/work/graduation-project-management-system/graduation-project-management-system/backend/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/ecem/.nuget/NuGet/NuGet.Config"
+        "/home/runner/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -4891,7 +4891,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
       "net8.0": {
@@ -4967,7 +4968,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.305/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
