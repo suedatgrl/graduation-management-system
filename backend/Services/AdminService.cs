@@ -112,7 +112,7 @@ namespace GraduationProjectManagement.Services
                 TcIdentityNumber = studentDto.TcIdentityNumber,
                 SchoolNumber = studentDto.SchoolNumber,
                 StudentNumber = studentDto.SchoolNumber, // Using school number as student number
-                Department = studentDto.Department,
+                CourseCode = studentDto.CourseCode,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             };
@@ -149,8 +149,6 @@ namespace GraduationProjectManagement.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                 Role = UserRole.Teacher,
                 TcIdentityNumber = teacherDto.TcIdentityNumber,
-                Department = teacherDto.Department,
-                Title = teacherDto.Title,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             };
@@ -188,7 +186,7 @@ namespace GraduationProjectManagement.Services
                             var email = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
                             var tcNumber = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
                             var schoolNumber = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
-                            var department = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
+                            var courseCode = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
 
                             if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || 
                                 string.IsNullOrEmpty(email) || string.IsNullOrEmpty(tcNumber) || 
@@ -215,7 +213,7 @@ namespace GraduationProjectManagement.Services
                                 TcIdentityNumber = tcNumber,
                                 SchoolNumber = schoolNumber,
                                 StudentNumber = schoolNumber,
-                                Department = department,
+                                CourseCode = courseCode,
                                 CreatedAt = DateTime.UtcNow,
                                 IsActive = true
                             };
@@ -227,8 +225,6 @@ namespace GraduationProjectManagement.Services
                             var lastName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
                             var email = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
                             var tcNumber = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
-                            var department = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
-                            var title = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
 
                             if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || 
                                 string.IsNullOrEmpty(email) || string.IsNullOrEmpty(tcNumber))
@@ -251,8 +247,6 @@ namespace GraduationProjectManagement.Services
                                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                                 Role = UserRole.Teacher,
                                 TcIdentityNumber = tcNumber,
-                                Department = department,
-                                Title = title,
                                 CreatedAt = DateTime.UtcNow,
                                 IsActive = true
                             };

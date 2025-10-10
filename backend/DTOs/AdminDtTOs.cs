@@ -25,7 +25,9 @@ namespace GraduationProjectManagement.DTOs
         [Required]
         public string SchoolNumber { get; set; } = string.Empty;
         
-        public string? Department { get; set; }
+        [Required]
+        [RegularExpression(@"^(BLM|COM)$", ErrorMessage = "CourseCode must be either 'BLM' (Turkish) or 'COM' (English)")]
+        public string CourseCode { get; set; } = string.Empty;
     }
     
     public class CreateTeacherDto
@@ -46,10 +48,6 @@ namespace GraduationProjectManagement.DTOs
         [StringLength(11, MinimumLength = 11)]
         [RegularExpression(@"^\d{11}$", ErrorMessage = "TC Identity Number must be exactly 11 digits")]
         public string TcIdentityNumber { get; set; } = string.Empty;
-        
-        public string? Department { get; set; }
-        
-        public string? Title { get; set; }
     }
     
     public class BulkUserUploadDto

@@ -37,8 +37,7 @@ namespace GraduationProjectManagement.DTOs
         public UserRole Role { get; set; }
         
         public string? StudentNumber { get; set; }
-        public string? Department { get; set; }
-        public string? Title { get; set; }
+        public string? CourseCode { get; set; }
     }
     
     public class AuthResponseDto
@@ -57,7 +56,37 @@ namespace GraduationProjectManagement.DTOs
         public string? StudentNumber { get; set; }
         public string? SchoolNumber { get; set; }
         public string? TcIdentityNumber { get; set; }
-        public string? Department { get; set; }
-        public string? Title { get; set; }
+        public string? CourseCode { get; set; }
+    }
+    
+    public class ForgotPasswordDto
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+    }
+    
+    public class ResetPasswordDto
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        
+        [Required]
+        public string Token { get; set; } = string.Empty;
+        
+        [Required]
+        [MinLength(6)]
+        public string NewPassword { get; set; } = string.Empty;
+    }
+    
+    public class ChangePasswordDto
+    {
+        [Required]
+        public string CurrentPassword { get; set; } = string.Empty;
+        
+        [Required]
+        [MinLength(6)]
+        public string NewPassword { get; set; } = string.Empty;
     }
 }

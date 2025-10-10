@@ -9,6 +9,7 @@ namespace GraduationProjectManagement.DTOs
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public Department Department { get; set; }
+        public string? CourseCode { get; set; }
         public int MaxStudents { get; set; }
         public int CurrentStudents { get; set; }
         public string? Requirements { get; set; }
@@ -29,6 +30,9 @@ namespace GraduationProjectManagement.DTOs
         
         [Required]
         public Department Department { get; set; }
+        
+        [RegularExpression(@"^(BLM|COM)$", ErrorMessage = "CourseCode must be either 'BLM' (Turkish) or 'COM' (English)")]
+        public string? CourseCode { get; set; }
         
         [Range(1, 10)]
         public int MaxStudents { get; set; } = 1;

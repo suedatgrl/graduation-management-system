@@ -5,7 +5,7 @@ namespace GraduationProjectManagement.Services
 {
     public interface IProjectService
     {
-        Task<IEnumerable<ProjectDto>> GetAllProjectsAsync(Department? department = null);
+        Task<IEnumerable<ProjectDto>> GetAllProjectsAsync(Department? department = null, string? courseCode = null);
         Task<ProjectDto?> GetProjectByIdAsync(int id);
         Task<ProjectDto> CreateProjectAsync(CreateProjectDto createProjectDto, int teacherId);
         Task<ProjectDto?> UpdateProjectAsync(int id, UpdateProjectDto updateProjectDto, int teacherId);

@@ -16,6 +16,8 @@ namespace GraduationProjectManagement.Models
         [Required]
         public Department Department { get; set; }
         
+        public string? CourseCode { get; set; } // BLM for Turkish, COM for English
+        
         [Required]
         public int TeacherId { get; set; }
         

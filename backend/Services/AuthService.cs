@@ -15,12 +15,14 @@ namespace GraduationProjectManagement.Services
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
 
-        public AuthService(AppDbContext context, IConfiguration configuration, IMapper mapper)
+        public AuthService(AppDbContext context, IConfiguration configuration, IMapper mapper, IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
             _mapper = mapper;
+            _emailService = emailService;
         }
 
         public async Task<AuthResponseDto?> LoginAsync(LoginRequestDto loginRequest)
@@ -62,6 +64,67 @@ namespace GraduationProjectManagement.Services
         {
             var user = await _context.Users.FindAsync(userId);
             return user != null ? _mapper.Map<UserDto>(user) : null;
+        }
+
+        public async Task<bool> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == forgotPasswordDto.Email);
+            
+            if (user == null)
+            {
+                // Don't reveal if email exists or not
+                return true;
+            }
+
+            // Generate a reset token
+            var resetToken = Guid.NewGuid().ToString();
+            user.PasswordResetToken = resetToken;
+            user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+
+            await _context.SaveChangesAsync();
+            await _emailService.SendPasswordResetEmailAsync(user.Email, resetToken);
+
+            return true;
+        }
+
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => 
+                u.Email == resetPasswordDto.Email && 
+                u.PasswordResetToken == resetPasswordDto.Token);
+
+            if (user == null || user.PasswordResetTokenExpiry == null || user.PasswordResetTokenExpiry < DateTime.UtcNow)
+            {
+                return false;
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.NewPassword);
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpiry = null;
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
+        {
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword, user.PasswordHash))
+            {
+                return false;
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
         private string GenerateJwtToken(User user)
