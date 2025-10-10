@@ -74,7 +74,11 @@ namespace GraduationProjectManagement.Data
             SeedData(modelBuilder);
         }
 private void SeedData(ModelBuilder modelBuilder)
-{
+        {
+string newPassword = "admin123";
+string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+Console.WriteLine(hashedPassword); // Bu çıktıyı kopyalayın
+
     modelBuilder.Entity<User>().HasData(
         new User
         {
@@ -82,7 +86,7 @@ private void SeedData(ModelBuilder modelBuilder)
             FirstName = "Admin",
             LastName = "User",
             Email = "admin@university.edu",
-            PasswordHash = "$2a$11$qzx4uWfRk9hEA0sP0XQ2cuvmO2m7w1sF1n3JvI7s/U7eC6A2Q0yqW", // sabit bir hash
+            PasswordHash = "$2a$11$NSBPgA.VcvWwJIqf7eIRjemdwb.lD64GjdSu7Z2Wuy6By4kG.H2A2", // sabit bir hash
             Role = UserRole.Admin,
             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), // SABİT TARİH
             IsActive = true
