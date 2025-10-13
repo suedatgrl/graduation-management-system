@@ -20,13 +20,14 @@ namespace GraduationProjectManagement.Services
         public async Task<ApplicationDto?> ApplyToProjectAsync(CreateApplicationDto applicationDto, int studentId)
         {
             // Öğrenci zaten bir projeye başvurmuş mu kontrolü
-            var existingApplication = await _context.ProjectApplications
-                .FirstOrDefaultAsync(pa => pa.StudentId == studentId && pa.Status == ApplicationStatus.Approved);
+          var existingApplication = await _context.ProjectApplications
+    .FirstOrDefaultAsync(pa => pa.StudentId == studentId && 
+                            (pa.Status == ApplicationStatus.Pending || pa.Status == ApplicationStatus.Approved));
 
-            if (existingApplication != null)
-            {
-                return null; // Zaten onaylanmış bir başvurusu var
-            }
+if (existingApplication != null)
+{
+    return null; // Zaten aktif bir başvurusu var (beklemede veya onaylanmış)
+}
 
             // Aynı projeye daha önce başvurmuş mu kontrolü
             var duplicateApplication = await _context.ProjectApplications

@@ -199,7 +199,7 @@ const SidebarContent = ({ navigationItems, user, onLogout, RoleIcon, getRoleText
       {/* Logo */}
       <div className="flex items-center h-16 flex-shrink-0 px-4 bg-blue-600">
         <BookOpen className="h-8 w-8 text-white" />
-        <span className="ml-2 text-white font-bold text-lg">GPMS</span>
+        <span className="ml-2 text-white font-bold text-lg">BPYS</span>
       </div>
 
       {/* User info */}

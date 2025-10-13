@@ -26,7 +26,7 @@ namespace GraduationProjectManagement.Services
 
             if (!string.IsNullOrEmpty(courseCode))
             {
-                query = query.Where(p => p.CourseCode == courseCode);
+                 query = query.Where(p => p.CourseCode.StartsWith(courseCode));
             }
 
             var projects = await query.ToListAsync();

@@ -5,8 +5,6 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    requirements: '',
-    keywords: '',
     maxStudents: 1,
     courseCode: '',
     isActive: true

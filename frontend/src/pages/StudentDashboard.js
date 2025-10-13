@@ -89,8 +89,9 @@ const filterProjects = () => {
 const handleApplicationSubmit = async (applicationData) => {
   try {
     console.log('Submitting application:', applicationData);
-    // applicationData içinde coverMessage ve projectId olacak
-    await projectService.applyToProject(applicationData.projectId, applicationData.coverMessage);
+    console.log('Project ID being sent:', applicationData.projectId);
+   
+    await projectService.applyToProject(applicationData.projectId);
     setShowApplicationModal(false);
     setSelectedProject(null);
     await fetchData(); // Refresh data
@@ -109,11 +110,11 @@ const handleApplicationSubmit = async (applicationData) => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 0: // Pending
+      case 1: // Pending
         return <Clock className="h-5 w-5 text-yellow-500" />;
-      case 1: // Approved
+      case 2: // Approved
         return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 2: // Rejected
+      case 3: // Rejected
         return <XCircle className="h-5 w-5 text-red-500" />;
       default:
         return <Clock className="h-5 w-5 text-gray-500" />;
@@ -122,18 +123,18 @@ const handleApplicationSubmit = async (applicationData) => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 0: return 'Beklemede';
-      case 1: return 'Onaylandı';
-      case 2: return 'Reddedildi';
+      case 1: return 'Beklemede';
+      case 2: return 'Onaylandı';
+      case 3: return 'Reddedildi';
       default: return 'Bilinmeyen';
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 0: return 'bg-yellow-100 text-yellow-800';
-      case 1: return 'bg-green-100 text-green-800';
-      case 2: return 'bg-red-100 text-red-800';
+      case 1: return 'bg-yellow-100 text-yellow-800';
+      case 2: return 'bg-green-100 text-green-800';
+      case 3: return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };

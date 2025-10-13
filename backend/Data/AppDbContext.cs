@@ -98,7 +98,7 @@ Console.WriteLine(hashedPassword); // Bu çıktıyı kopyalayın
         {
             Id = 1,
             Key = "ApplicationDeadline",
-            Value = "2024-12-31T23:59:59",
+            Value = "2025-12-31T23:59:59",
             Description = "Son başvuru tarihi",
             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), // SABİT TARİH
             UpdatedBy = 1
@@ -107,7 +107,7 @@ Console.WriteLine(hashedPassword); // Bu çıktıyı kopyalayın
         {
             Id = 2,
             Key = "SelectionStartDate",
-            Value = "2024-10-01T00:00:00",
+            Value = "2025-12-31T23:59:59",
             Description = "Proje seçimi başlangıç tarihi",
             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), // SABİT TARİH
             UpdatedBy = 1
