@@ -8,13 +8,19 @@ class ProjectService {
     return { Authorization: `Bearer ${token}` };
   }
 
-  async getProjects(department = null) {
-    const params = department ? { department } : {};
-    const response = await axios.get(`${API_URL}/projects`, {
-      params,
-      headers: this.getAuthHeaders()
-    });
-    return response.data;
+async getProjects(courseCode = null) {
+    try {
+      const params = courseCode ? { courseCode } : {};
+      const response = await axios.get(`${API_URL}/projects`, {
+        params,
+        headers: this.getAuthHeaders()
+      });
+      console.log('Projects fetched:', response.data); // Debug için
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      throw error;
+    }
   }
 
   async getProjectById(id) {
@@ -25,7 +31,7 @@ class ProjectService {
   }
 
   async createProject(projectData) {
-    const response = await axios.post(`${API_URL}/projects`, projectData, {
+    const response = await axios.post(`${API_URL}/projects/create-project`, projectData, {
       headers: this.getAuthHeaders()
     });
     return response.data;
@@ -46,7 +52,7 @@ class ProjectService {
   }
 
   async getTeacherProjects() {
-    const response = await axios.get(`${API_URL}/projects/teacher`, {
+    const response = await axios.get(`${API_URL}/projects/my`, {
       headers: this.getAuthHeaders()
     });
     return response.data;

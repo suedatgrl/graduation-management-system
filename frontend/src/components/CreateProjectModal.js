@@ -56,22 +56,9 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
   };
 
   const courseCodes = [
-    { value: 'BLM101', label: 'BLM101 - Bilgisayar Programlama I' },
-    { value: 'BLM102', label: 'BLM102 - Bilgisayar Programlama II' },
-    { value: 'BLM201', label: 'BLM201 - Veri Yapıları' },
-    { value: 'BLM202', label: 'BLM202 - Algoritma Analizi' },
-    { value: 'BLM301', label: 'BLM301 - Veritabanı Yönetimi' },
-    { value: 'BLM302', label: 'BLM302 - Web Programlama' },
-    { value: 'BLM401', label: 'BLM401 - Yazılım Mühendisliği' },
-    { value: 'BLM402', label: 'BLM402 - Mezuniyet Projesi' },
-    { value: 'COM101', label: 'COM101 - Computer Programming I' },
-    { value: 'COM102', label: 'COM102 - Computer Programming II' },
-    { value: 'COM201', label: 'COM201 - Data Structures' },
-    { value: 'COM202', label: 'COM202 - Algorithm Analysis' },
-    { value: 'COM301', label: 'COM301 - Database Management' },
-    { value: 'COM302', label: 'COM302 - Web Programming' },
-    { value: 'COM401', label: 'COM401 - Software Engineering' },
-    { value: 'COM402', label: 'COM402 - Graduation Project' }
+    { value: 'BLM101', label: 'BLM101 Araştırma Teknikleri' },
+    { value: 'COM101', label: 'COM101 Research Teqnuices' },
+
   ];
 
   return (
@@ -119,20 +106,20 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Kurs kodu seçin</option>
-              <optgroup label="Türkçe Kurslar (BLM)">
+             
                 {courseCodes.filter(code => code.value.startsWith('BLM')).map(code => (
                   <option key={code.value} value={code.value}>
                     {code.label}
                   </option>
                 ))}
-              </optgroup>
-              <optgroup label="English Courses (COM)">
+            
+         
                 {courseCodes.filter(code => code.value.startsWith('COM')).map(code => (
                   <option key={code.value} value={code.value}>
                     {code.label}
                   </option>
                 ))}
-              </optgroup>
+            
             </select>
           </div>
 
@@ -152,38 +139,6 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
             />
           </div>
 
-          <div>
-            <label htmlFor="requirements" className="block text-sm font-medium text-gray-700 mb-1">
-              Gereksinimler
-            </label>
-            <textarea
-              id="requirements"
-              name="requirements"
-              rows={3}
-              value={formData.requirements}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Proje için gerekli olan teknik beceriler, araçlar vb."
-            />
-          </div>
-
-          <div>
-            <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 mb-1">
-              Anahtar Kelimeler
-            </label>
-            <input
-              type="text"
-              id="keywords"
-              name="keywords"
-              value={formData.keywords}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="React, JavaScript, Machine Learning (virgülle ayırın)"
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              Anahtar kelimeleri virgülle ayırarak girin
-            </p>
-          </div>
 
           <div>
             <label htmlFor="maxStudents" className="block text-sm font-medium text-gray-700 mb-1">
@@ -200,6 +155,12 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
               <option value={2}>2 Öğrenci</option>
               <option value={3}>3 Öğrenci</option>
               <option value={4}>4 Öğrenci</option>
+              <option value={5}>5 Öğrenci</option>
+              <option value={6}>6 Öğrenci</option>
+              <option value={7}>7 Öğrenci</option>
+              <option value={8}>8 Öğrenci</option>
+              <option value={9}>9 Öğrenci</option>
+              <option value={10}>10 Öğrenci</option>
             </select>
           </div>
 

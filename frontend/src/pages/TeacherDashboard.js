@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import projectService from '../services/projectService';
 import ProjectCard from '../components/ProjectCard';
 import CreateProjectModal from '../components/CreateProjectModal';
+import EditProjectModal from '../components/EditProjectModal'; // Yeni import
 import ApplicationsModal from '../components/ApplicationsModal';
 import { Plus, BookOpen, Users, Clock, CheckCircle, XCircle, Filter } from 'lucide-react';
 
@@ -11,6 +12,7 @@ const TeacherDashboard = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false); // Yeni state
   const [selectedProject, setSelectedProject] = useState(null);
   const [showApplicationsModal, setShowApplicationsModal] = useState(false);
   const [languageFilter, setLanguageFilter] = useState('all');
@@ -28,7 +30,9 @@ const TeacherDashboard = () => {
     try {
       setLoading(true);
       const data = await projectService.getTeacherProjects();
-      setProjects(data);
+      // Sadece aktif projeleri göster
+      const activeProjects = data.filter(project => project.isActive);
+      setProjects(activeProjects);
     } catch (error) {
       console.error('Error fetching projects:', error);
     } finally {
@@ -57,6 +61,23 @@ const TeacherDashboard = () => {
     }
   };
 
+ 
+  const handleEditProject = (project) => {
+    setSelectedProject(project);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateProject = async (projectData) => {
+    try {
+      await projectService.updateProject(selectedProject.id, projectData);
+      setShowEditModal(false);
+      setSelectedProject(null);
+      await fetchProjects();
+    } catch (error) {
+      console.error('Error updating project:', error);
+    }
+  };
+
   const handleViewApplications = (project) => {
     setSelectedProject(project);
     setShowApplicationsModal(true);
@@ -66,7 +87,10 @@ const TeacherDashboard = () => {
     if (window.confirm('Bu projeyi silmek istediğinizden emin misiniz?')) {
       try {
         await projectService.deleteProject(projectId);
-        await fetchProjects();
+        // Projeyi listeden kaldır (backend'de isActive: false yapılıyor)
+        setProjects(prevProjects => 
+          prevProjects.filter(project => project.id !== projectId)
+        );
       } catch (error) {
         console.error('Error deleting project:', error);
       }
@@ -88,7 +112,7 @@ const TeacherDashboard = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -100,15 +124,13 @@ const TeacherDashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Öğretmen Paneli
-            </h1>
-            <p className="text-gray-600 mt-1">
               Hoş geldiniz, {user?.firstName} {user?.lastName}
-            </p>
+            </h1>
+            <p className="text-gray-600 mt-2">Projelerinizi yönetin ve başvuruları inceleyin.</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <Plus className="h-5 w-5" />
             <span>Yeni Proje</span>
@@ -116,7 +138,7 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
@@ -150,11 +172,11 @@ const TeacherDashboard = () => {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-bold text-sm">TR</span>
+            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+              <span className="text-white text-sm font-bold">TR</span>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Türkçe Proje</p>
+              <p className="text-sm font-medium text-gray-600">Türkçe Projeler</p>
               <p className="text-2xl font-bold text-gray-900">{stats.turkish}</p>
             </div>
           </div>
@@ -162,25 +184,25 @@ const TeacherDashboard = () => {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="text-green-600 font-bold text-sm">EN</span>
+            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+              <span className="text-white text-sm font-bold">EN</span>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">English Proje</p>
+              <p className="text-sm font-medium text-gray-600">English Projeler</p>
               <p className="text-2xl font-bold text-gray-900">{stats.english}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filter and Projects */}
+      {/* Projects */}
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
+        <div className="border-b border-gray-200 p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">Projelerim</h2>
-            <div className="flex items-center space-x-4">
+            <h2 className="text-lg font-semibold text-gray-900">Projelerim</h2>
+            <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4 text-gray-600" />
+                <Filter className="h-4 w-4 text-gray-500" />
                 <span className="text-sm text-gray-600">Dil Filtresi:</span>
               </div>
               <select
@@ -198,16 +220,13 @@ const TeacherDashboard = () => {
 
         <div className="p-6">
           {filteredProjects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-4"> {/* Liste formatı için space-y-4 */}
               {filteredProjects.map((project) => (
                 <ProjectCard
                   key={project.id}
                   project={project}
                   onViewApplications={handleViewApplications}
-                  onEdit={(project) => {
-                    // Handle edit functionality
-                    console.log('Edit project:', project);
-                  }}
+                  onEdit={handleEditProject} // Güncellenmiş handler
                   onDelete={handleDeleteProject}
                   userRole="teacher"
                 />
@@ -232,6 +251,17 @@ const TeacherDashboard = () => {
         <CreateProjectModal
           onSubmit={handleCreateProject}
           onClose={() => setShowCreateModal(false)}
+        />
+      )}
+
+      {showEditModal && selectedProject && (
+        <EditProjectModal
+          project={selectedProject}
+          onSubmit={handleUpdateProject}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedProject(null);
+          }}
         />
       )}
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import projectService from '../services/projectService';
 import { X, User, Calendar, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
 
-const ApplicationsModal = ({ project, onClose }) => {
+const ApplicationModal = ({ project, onClose }) => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -285,4 +285,4 @@ const ReviewApplicationModal = ({ application, onSubmit, onClose, loading }) => 
   );
 };
 
-export default ApplicationsModal;
+export default ApplicationModal;

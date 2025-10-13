@@ -29,33 +29,55 @@ const StudentDashboard = () => {
   }, [projects, searchTerm]);
 
   const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [projectsData, applicationsData] = await Promise.all([
-        projectService.getProjects(),
-        projectService.getMyApplications()
-      ]);
+  try {
+    setLoading(true);
+    
+    // Backend'e courseCode'u gönder
+    const [projectsData, applicationsData] = await Promise.all([
+      projectService.getProjects(coursePrefix), // courseCode parametresi eklendi
+      projectService.getMyApplications()
+    ]);
 
-      // Filter projects by course language
-      const languageFilteredProjects = projectsData.filter(project => 
-        project.courseCode?.startsWith(coursePrefix)
-      );
+    console.log('Fetched projects data:', projectsData); // Debug için
+    console.log('Course prefix:', coursePrefix); // Debug için
 
-      setProjects(languageFilteredProjects);
-      setMyApplications(applicationsData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterProjects = () => {
-    const filtered = projects.filter(project =>
-      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.keywords?.toLowerCase().includes(searchTerm.toLowerCase())
+    // Eğer backend filtreleme yapmazsa frontend'de filtrele
+    const languageFilteredProjects = projectsData.filter(project => 
+      project.courseCode?.startsWith(coursePrefix)
     );
+
+    setProjects(languageFilteredProjects);
+    setMyApplications(applicationsData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+const filterProjects = () => {
+    const filtered = projects.filter(project => {
+      const searchLower = searchTerm.toLowerCase();
+      
+      // Proje başlığında arama
+      const titleMatch = project.title?.toLowerCase().includes(searchLower);
+      
+      // Proje açıklamasında arama
+      const descriptionMatch = project.description?.toLowerCase().includes(searchLower);
+      
+      // Anahtar kelimelerde arama
+      const keywordsMatch = project.keywords?.toLowerCase().includes(searchLower);
+      
+      // Öğretmen adında arama
+      const teacherFirstNameMatch = project.teacher?.firstName?.toLowerCase().includes(searchLower);
+      const teacherLastNameMatch = project.teacher?.lastName?.toLowerCase().includes(searchLower);
+      const teacherFullNameMatch = project.teacher ? 
+        `${project.teacher.firstName} ${project.teacher.lastName}`.toLowerCase().includes(searchLower) : false;
+      
+      // Herhangi birinde eşleşme varsa projeyi dahil et
+      return titleMatch || descriptionMatch || keywordsMatch || 
+             teacherFirstNameMatch || teacherLastNameMatch || teacherFullNameMatch;
+    });
+    
     setFilteredProjects(filtered);
   };
 
@@ -64,17 +86,26 @@ const StudentDashboard = () => {
     setShowApplicationModal(true);
   };
 
-  const handleApplicationSubmit = async (applicationData) => {
-    try {
-      await projectService.applyToProject(selectedProject.id);
-      setShowApplicationModal(false);
-      await fetchData(); // Refresh data
-      // Show success message
-    } catch (error) {
-      console.error('Error submitting application:', error);
-      // Show error message
+const handleApplicationSubmit = async (applicationData) => {
+  try {
+    console.log('Submitting application:', applicationData);
+    // applicationData içinde coverMessage ve projectId olacak
+    await projectService.applyToProject(applicationData.projectId, applicationData.coverMessage);
+    setShowApplicationModal(false);
+    setSelectedProject(null);
+    await fetchData(); // Refresh data
+    alert('Başvurunuz başarıyla gönderildi!');
+  } catch (error) {
+    console.error('Error submitting application:', error);
+    if (error.response?.status === 403) {
+      alert('Bu işlem için yetkiniz bulunmuyor.');
+    } else if (error.response?.status === 409) {
+      alert('Bu projeye zaten başvurdunuz.');
+    } else {
+      alert('Başvuru gönderilirken hata oluştu!');
     }
-  };
+  }
+};
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -196,7 +227,7 @@ const StudentDashboard = () => {
 
               {/* Projects Grid */}
               {filteredProjects.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-4"> 
                   {filteredProjects.map((project) => (
                     <ProjectCard
                       key={project.id}
