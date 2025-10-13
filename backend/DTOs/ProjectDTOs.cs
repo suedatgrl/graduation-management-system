@@ -8,14 +8,11 @@ namespace GraduationProjectManagement.DTOs
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public Department Department { get; set; }
-        public string? CourseCode { get; set; }
+        public string CourseCode { get; set; } = string.Empty;
         public int MaxStudents { get; set; }
         public int CurrentStudents { get; set; }
-        public string? Requirements { get; set; }
-        public string? Keywords { get; set; }
-        public bool IsActive { get; set; }
         public UserDto Teacher { get; set; } = null!;
+        public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
     }
     
@@ -27,18 +24,16 @@ namespace GraduationProjectManagement.DTOs
         
         [Required]
         public string Description { get; set; } = string.Empty;
-        
+
+
+
+        //[RegularExpression(@"^(BLM|COM)$", ErrorMessage = "CourseCode must be either 'BLM' (Turkish) or 'COM' (English)")]
         [Required]
-        public Department Department { get; set; }
-        
-        [RegularExpression(@"^(BLM|COM)$", ErrorMessage = "CourseCode must be either 'BLM' (Turkish) or 'COM' (English)")]
-        public string? CourseCode { get; set; }
+        public string CourseCode { get; set; } = string.Empty;
         
         [Range(1, 10)]
         public int MaxStudents { get; set; } = 1;
-        
-        public string? Requirements { get; set; }
-        public string? Keywords { get; set; }
+    
     }
     
     public class UpdateProjectDto
@@ -50,9 +45,7 @@ namespace GraduationProjectManagement.DTOs
         
         [Range(1, 10)]
         public int? MaxStudents { get; set; }
-        
-        public string? Requirements { get; set; }
-        public string? Keywords { get; set; }
         public bool? IsActive { get; set; }
+        
     }
 }

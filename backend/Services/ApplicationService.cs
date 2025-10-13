@@ -58,7 +58,6 @@ namespace GraduationProjectManagement.Services
             {
                 StudentId = studentId,
                 ProjectId = applicationDto.ProjectId,
-                ApplicationLetter = applicationDto.ApplicationLetter,
                 AppliedAt = DateTime.UtcNow,
                 Status = ApplicationStatus.Pending
             };
@@ -127,7 +126,6 @@ namespace GraduationProjectManagement.Services
 
             application.Status = reviewDto.Status;
             application.ReviewedAt = DateTime.UtcNow;
-            application.ReviewNotes = reviewDto.ReviewNotes;
 
             await _context.SaveChangesAsync();
 
@@ -144,8 +142,6 @@ namespace GraduationProjectManagement.Services
             {
                 return false; // Bulunamadı veya zaten onaylanmış
             }
-
-            application.Status = ApplicationStatus.Withdrawn;
             await _context.SaveChangesAsync();
 
             return true;

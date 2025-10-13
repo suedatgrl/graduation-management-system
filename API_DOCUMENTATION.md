@@ -100,21 +100,18 @@ Change password for the currently logged-in user.
 
 ## Projects
 
-### Get All Projects (Updated)
+### Get All Projects 
 Retrieve all active projects with optional filtering.
 
 **Endpoint:** `GET /api/projects`
 
 **Query Parameters:**
-- `department` (optional): Filter by department (1=Turkish, 2=English)
 - `courseCode` (optional): Filter by course code ("BLM" or "COM")
 
 **Examples:**
 ```
 GET /api/projects
-GET /api/projects?department=1
 GET /api/projects?courseCode=BLM
-GET /api/projects?department=1&courseCode=BLM
 ```
 
 **Response (200 OK):**
@@ -142,6 +139,17 @@ GET /api/projects?department=1&courseCode=BLM
   }
 ]
 ```
+**Other Project Endpoints:**
+```
+GET  /api/Projects
+GET /api/Projects/{id}
+PUT  /api/Projects/{id}
+DELETE  /api/Projects/{id}
+POST  /api/Projects/projects
+GET  /api/Projects/my
+
+```
+
 
 ---
 
@@ -150,7 +158,7 @@ GET /api/projects?department=1&courseCode=BLM
 ### Create Student (Updated)
 Create a new student account.
 
-**Endpoint:** `POST /api/admin/students`
+**Endpoint:** `POST /api/admin/add-student`
 
 **Authorization:** Admin role required
 
@@ -189,7 +197,7 @@ Create a new student account.
 ### Create Teacher (Updated)
 Create a new teacher account.
 
-**Endpoint:** `POST /api/admin/teachers`
+**Endpoint:** `POST /api/admin/add-teacher`
 
 **Authorization:** Admin role required
 

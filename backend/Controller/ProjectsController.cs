@@ -19,9 +19,9 @@ namespace GraduationProjectManagement.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProjects([FromQuery] Department? department, [FromQuery] string? courseCode)
+        public async Task<IActionResult> GetProjects([FromQuery] string courseCode)
         {
-            var projects = await _projectService.GetAllProjectsAsync(department, courseCode);
+            var projects = await _projectService.GetAllProjectsAsync( courseCode);
             return Ok(projects);
         }
 
@@ -35,7 +35,7 @@ namespace GraduationProjectManagement.Controllers
         }
 
         [Authorize(Roles = "Teacher")]
-        [HttpPost]
+        [HttpPost("projects")]
         public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
         {
             var teacherId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

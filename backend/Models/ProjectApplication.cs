@@ -12,13 +12,11 @@ namespace GraduationProjectManagement.Models
         [Required]
         public int ProjectId { get; set; }
         
-        public string? ApplicationLetter { get; set; }
         
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Pending;
         
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ReviewedAt { get; set; }
-        public string? ReviewNotes { get; set; }
         
         // Navigation properties
         public virtual User Student { get; set; } = null!;
@@ -30,6 +28,5 @@ namespace GraduationProjectManagement.Models
         Pending = 1,
         Approved = 2,
         Rejected = 3,
-        Withdrawn = 4
     }
 }

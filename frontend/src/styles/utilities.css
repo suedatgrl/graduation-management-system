@@ -1,0 +1,488 @@
+/* Custom utility classes */
+
+/* Spacing utilities */
+.space-y-0-5 > * + * {
+  margin-top: 0.125rem;
+}
+
+.space-y-1-5 > * + * {
+  margin-top: 0.375rem;
+}
+
+.space-x-0-5 > * + * {
+  margin-left: 0.125rem;
+}
+
+.space-x-1-5 > * + * {
+  margin-left: 0.375rem;
+}
+
+/* Flexbox utilities */
+.flex-center {
+  @apply flex items-center justify-center;
+}
+
+.flex-between {
+  @apply flex items-center justify-between;
+}
+
+.flex-start {
+  @apply flex items-center justify-start;
+}
+
+.flex-end {
+  @apply flex items-center justify-end;
+}
+
+/* Text utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-ellipsis-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Border utilities */
+.border-dashed-2 {
+  border-width: 2px;
+  border-style: dashed;
+}
+
+.border-dotted-2 {
+  border-width: 2px;
+  border-style: dotted;
+}
+
+/* Shadow utilities */
+.shadow-outline {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.shadow-outline-green {
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.shadow-outline-red {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Background utilities */
+.bg-pattern-dots {
+  background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-pattern-grid {
+  background-image: 
+    linear-gradient(rgba(229, 231, 235, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.bg-gradient-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.bg-gradient-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Position utilities */
+.fixed-center {
+  @apply fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+}
+
+.absolute-center {
+  @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+}
+
+.absolute-top-right {
+  @apply absolute top-2 right-2;
+}
+
+.absolute-bottom-right {
+  @apply absolute bottom-2 right-2;
+}
+
+/* Size utilities */
+.size-4 {
+  @apply w-4 h-4;
+}
+
+.size-5 {
+  @apply w-5 h-5;
+}
+
+.size-6 {
+  @apply w-6 h-6;
+}
+
+.size-8 {
+  @apply w-8 h-8;
+}
+
+.size-10 {
+  @apply w-10 h-10;
+}
+
+.size-12 {
+  @apply w-12 h-12;
+}
+
+/* Layout utilities */
+.container-narrow {
+  max-width: 768px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.container-wide {
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Visibility utilities */
+.visible-hover {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.group:hover .visible-hover {
+  opacity: 1;
+}
+
+.invisible-hover {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.group:hover .invisible-hover {
+  opacity: 0;
+}
+
+/* Interactive states */
+.interactive {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.interactive:hover {
+  @apply transform scale-102;
+}
+
+.interactive:active {
+  @apply transform scale-95;
+}
+
+/* Focus utilities */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.focus-ring-inset {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset;
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* State utilities */
+.loading {
+  @apply opacity-50 pointer-events-none;
+}
+
+.disabled {
+  @apply opacity-50 cursor-not-allowed pointer-events-none;
+}
+
+.selected {
+  @apply bg-blue-50 border-blue-500 text-blue-900;
+}
+
+.error {
+  @apply border-red-500 bg-red-50 text-red-900;
+}
+
+.success {
+  @apply border-green-500 bg-green-50 text-green-900;
+}
+
+.warning {
+  @apply border-yellow-500 bg-yellow-50 text-yellow-900;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+  .mobile-stack {
+    @apply flex-col space-y-2 space-x-0;
+  }
+  
+  .mobile-full {
+    @apply w-full;
+  }
+  
+  .mobile-hidden {
+    @apply hidden;
+  }
+  
+  .mobile-only {
+    @apply block;
+  }
+}
+
+@media (min-width: 641px) {
+  .mobile-only {
+    @apply hidden;
+  }
+}
+
+/* Course-specific utilities */
+.course-blm-gradient {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+}
+
+.course-com-gradient {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+}
+
+.course-indicator {
+  @apply w-3 h-3 rounded-full;
+}
+
+.course-indicator-blm {
+  @apply bg-blue-500;
+}
+
+.course-indicator-com {
+  @apply bg-green-500;
+}
+
+/* Project status utilities */
+.status-active {
+  @apply text-green-600 bg-green-100 border-green-200;
+}
+
+.status-inactive {
+  @apply text-red-600 bg-red-100 border-red-200;
+}
+
+.status-pending {
+  @apply text-yellow-600 bg-yellow-100 border-yellow-200;
+}
+
+.status-approved {
+  @apply text-green-600 bg-green-100 border-green-200;
+}
+
+.status-rejected {
+  @apply text-red-600 bg-red-100 border-red-200;
+}
+
+/* Form utilities */
+.form-group {
+  @apply mb-4;
+}
+
+.form-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.form-grid-3 {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+}
+
+.form-actions {
+  @apply flex justify-end space-x-3 pt-4 border-t border-gray-200;
+}
+
+/* Card utilities */
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+}
+
+.card-selected {
+  @apply ring-2 ring-blue-500 border-blue-500;
+}
+
+/* List utilities */
+.list-divided {
+  @apply divide-y divide-gray-200;
+}
+
+.list-item {
+  @apply py-3 first:pt-0 last:pb-0;
+}
+
+/* Avatar utilities */
+.avatar {
+  @apply rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium;
+}
+
+.avatar-sm {
+  @apply w-8 h-8 text-sm;
+}
+
+.avatar-md {
+  @apply w-10 h-10 text-base;
+}
+
+.avatar-lg {
+  @apply w-12 h-12 text-lg;
+}
+
+.avatar-xl {
+  @apply w-16 h-16 text-xl;
+}
+
+/* Notification utilities */
+.notification {
+  @apply fixed top-4 right-4 max-w-sm w-full bg-white shadow-lg rounded-lg border z-50;
+}
+
+.notification-enter {
+  @apply transform translate-x-full opacity-0;
+}
+
+.notification-enter-active {
+  @apply transform translate-x-0 opacity-100 transition-all duration-300;
+}
+
+.notification-exit {
+  @apply transform translate-x-0 opacity-100;
+}
+
+.notification-exit-active {
+  @apply transform translate-x-full opacity-0 transition-all duration-300;
+}
+
+/* Print utilities */
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+  
+  .print-visible {
+    display: block !important;
+  }
+  
+  .print-break-before {
+    page-break-before: always;
+  }
+  
+  .print-break-after {
+    page-break-after: always;
+  }
+  
+  .print-no-break {
+    page-break-inside: avoid;
+  }
+}
+
+/* Accessibility utilities */
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  @apply sr-only;
+}
+
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-2 z-50;
+}
+
+/* Dark mode utilities (future-proofing) */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-auto {
+    /* Auto dark mode styles */
+  }
+}
+
+.dark {
+  /* Manual dark mode toggle */
+}
+
+.dark .dark-bg {
+  @apply bg-gray-900;
+}
+
+.dark .dark-text {
+  @apply text-gray-100;
+}
+
+.dark .dark-border {
+  @apply border-gray-700;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .high-contrast {
+    border-width: 2px;
+    font-weight: 600;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .motion-reduce {
+    animation: none !important;
+    transition: none !important;
+  }
+}

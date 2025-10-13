@@ -17,16 +17,12 @@ namespace GraduationProjectManagement.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ProjectDto>> GetAllProjectsAsync(Department? department = null, string? courseCode = null)
+        public async Task<IEnumerable<ProjectDto>> GetAllProjectsAsync(string courseCode)
         {
             var query = _context.Projects
                 .Include(p => p.Teacher)
                 .Where(p => p.IsActive);
 
-            if (department.HasValue)
-            {
-                query = query.Where(p => p.Department == department.Value);
-            }
 
             if (!string.IsNullOrEmpty(courseCode))
             {

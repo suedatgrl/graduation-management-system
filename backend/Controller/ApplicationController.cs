@@ -18,7 +18,7 @@ namespace GraduationProjectManagement.Controllers
         }
 
         [Authorize(Roles = "Student")]
-        [HttpPost]
+        [HttpPost("apply-project")]
         public async Task<IActionResult> Apply([FromBody] CreateApplicationDto dto)
         {
             var studentId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
