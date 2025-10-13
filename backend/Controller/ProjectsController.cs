@@ -35,7 +35,7 @@ namespace GraduationProjectManagement.Controllers
         }
 
         [Authorize(Roles = "Teacher")]
-        [HttpPost("projects")]
+        [HttpPost("create-project")]
         public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
         {
             var teacherId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
