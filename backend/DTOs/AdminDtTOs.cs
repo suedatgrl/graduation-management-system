@@ -26,7 +26,6 @@ namespace GraduationProjectManagement.DTOs
         public string SchoolNumber { get; set; } = string.Empty;
         
         [Required]
-        [RegularExpression(@"^(BLM|COM)$", ErrorMessage = "CourseCode must be either 'BLM' (Turkish) or 'COM' (English)")]
         public string CourseCode { get; set; } = string.Empty;
     }
     

@@ -3,8 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import projectService from '../services/projectService';
 import ProjectCard from '../components/ProjectCard';
 import CreateProjectModal from '../components/CreateProjectModal';
-import EditProjectModal from '../components/EditProjectModal'; // Yeni import
+import EditProjectModal from '../components/EditProjectModal';
 import ApplicationsModal from '../components/ApplicationsModal';
+import AllApplicationsModal from '../components/AllApplicationsModal'; // Yeni import
 import { Plus, BookOpen, Users, Clock, CheckCircle, XCircle, Filter } from 'lucide-react';
 
 const TeacherDashboard = () => {
@@ -12,11 +13,13 @@ const TeacherDashboard = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false); // Yeni state
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showApplicationsModal, setShowApplicationsModal] = useState(false);
+  const [showAllApplicationsModal, setShowAllApplicationsModal] = useState(false); // Yeni state
   const [languageFilter, setLanguageFilter] = useState('all');
   const [filteredProjects, setFilteredProjects] = useState([]);
+  const [allApplications, setAllApplications] = useState([]);
 
   useEffect(() => {
     fetchProjects();
@@ -26,17 +29,35 @@ const TeacherDashboard = () => {
     filterProjectsByLanguage();
   }, [projects, languageFilter]);
 
+  useEffect(() => {
+    if (projects.length > 0) {
+      fetchAllApplications();
+    }
+  }, [projects]);
+
   const fetchProjects = async () => {
     try {
       setLoading(true);
       const data = await projectService.getTeacherProjects();
-      // Sadece aktif projeleri göster
       const activeProjects = data.filter(project => project.isActive);
       setProjects(activeProjects);
     } catch (error) {
       console.error('Error fetching projects:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAllApplications = async () => {
+    try {
+      const allAppsPromises = projects.map(project => 
+        projectService.getProjectApplications(project.id)
+      );
+      const allAppsResults = await Promise.all(allAppsPromises);
+      const flatApplications = allAppsResults.flat();
+      setAllApplications(flatApplications);
+    } catch (error) {
+      console.error('Error fetching all applications:', error);
     }
   };
 
@@ -61,7 +82,6 @@ const TeacherDashboard = () => {
     }
   };
 
- 
   const handleEditProject = (project) => {
     setSelectedProject(project);
     setShowEditModal(true);
@@ -83,11 +103,15 @@ const TeacherDashboard = () => {
     setShowApplicationsModal(true);
   };
 
+  // Güncellenmiş: Tüm başvuruları liste halinde göster
+  const handleViewAllApplications = () => {
+    setShowAllApplicationsModal(true);
+  };
+
   const handleDeleteProject = async (projectId) => {
     if (window.confirm('Bu projeyi silmek istediğinizden emin misiniz?')) {
       try {
         await projectService.deleteProject(projectId);
-        // Projeyi listeden kaldır (backend'de isActive: false yapılıyor)
         setProjects(prevProjects => 
           prevProjects.filter(project => project.id !== projectId)
         );
@@ -100,7 +124,12 @@ const TeacherDashboard = () => {
   const getProjectStats = () => {
     const total = filteredProjects.length;
     const active = filteredProjects.filter(p => p.isActive).length;
-    const totalApplications = filteredProjects.reduce((sum, p) => sum + (p.currentStudents || 0), 0);
+    
+    const totalApplications = filteredProjects.reduce((sum, project) => {
+      const projectApplications = allApplications.filter(app => app.projectId === project.id);
+      return sum + projectApplications.length;
+    }, 0);
+    
     const turkish = filteredProjects.filter(p => p.courseCode?.startsWith('BLM')).length;
     const english = filteredProjects.filter(p => p.courseCode?.startsWith('COM')).length;
 
@@ -119,7 +148,7 @@ const TeacherDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header - değişiklik yok */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -138,7 +167,7 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats - sadece Toplam Başvuru kartı güncellenmiş */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
@@ -160,7 +189,12 @@ const TeacherDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Güncellenmiş: Tıklanabilir Başvuru Stats */}
+        <div 
+          className="bg-white rounded-lg shadow p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={handleViewAllApplications}
+          title="Tüm başvuruları görüntülemek için tıklayın"
+        >
           <div className="flex items-center">
             <Users className="h-8 w-8 text-purple-600" />
             <div className="ml-4">
@@ -195,7 +229,7 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      {/* Projects */}
+      {/* Projects - değişiklik yok */}
       <div className="bg-white rounded-lg shadow">
         <div className="border-b border-gray-200 p-6">
           <div className="flex items-center justify-between">
@@ -220,13 +254,13 @@ const TeacherDashboard = () => {
 
         <div className="p-6">
           {filteredProjects.length > 0 ? (
-            <div className="space-y-4"> {/* Liste formatı için space-y-4 */}
+            <div className="space-y-4">
               {filteredProjects.map((project) => (
                 <ProjectCard
                   key={project.id}
                   project={project}
                   onViewApplications={handleViewApplications}
-                  onEdit={handleEditProject} // Güncellenmiş handler
+                  onEdit={handleEditProject}
                   onDelete={handleDeleteProject}
                   userRole="teacher"
                 />
@@ -269,6 +303,14 @@ const TeacherDashboard = () => {
         <ApplicationsModal
           project={selectedProject}
           onClose={() => setShowApplicationsModal(false)}
+        />
+      )}
+
+      {/* Yeni: Tüm Başvurular Modal */}
+      {showAllApplicationsModal && (
+        <AllApplicationsModal
+          projects={filteredProjects}
+          onClose={() => setShowAllApplicationsModal(false)}
         />
       )}
     </div>

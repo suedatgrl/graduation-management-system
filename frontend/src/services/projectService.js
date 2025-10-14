@@ -82,7 +82,7 @@ async getProjects(courseCode = null) {
   }
 
   async reviewApplication(applicationId, status, reviewNotes) {
-    const response = await axios.put(`${API_URL}/applications/${applicationId}/review`, {
+    const response = await axios.post(`${API_URL}/applications/${applicationId}/review`, {
       status,
       reviewNotes
     }, {
