@@ -1,8 +1,8 @@
 using AutoMapper;
+using GraduationProjectManagement.Data;
 using GraduationProjectManagement.DTOs;
 using GraduationProjectManagement.Models;
 using Microsoft.EntityFrameworkCore;
-using GraduationProjectManagement.Data;
 
 namespace GraduationProjectManagement.Services
 {
@@ -22,21 +22,53 @@ namespace GraduationProjectManagement.Services
             var teachers = await _context.Users
                 .Where(u => u.Role == UserRole.Teacher && u.IsActive)
                 .Include(u => u.Projects.Where(p => p.IsActive))
+                    .ThenInclude(p => p.Applications)
                 .ToListAsync();
 
             var teacherDtos = teachers.Select(teacher => 
             {
-                var usedQuota = teacher.Projects.Sum(p => p.CurrentStudents);
+                // Onaylanan öğrenci sayısını hesapla (sadece approved applications)
+                var usedQuota = teacher.Projects
+                    .SelectMany(p => p.Applications)
+                    .Count(app => app.Status == ApplicationStatus.Approved);
+
+                var totalQuota = teacher.TotalQuota ?? 0;
+                var availableQuota = Math.Max(0, totalQuota - usedQuota);
+
                 return new TeacherWithQuotaDto
                 {
                     Id = teacher.Id,
                     FirstName = teacher.FirstName,
                     LastName = teacher.LastName,
                     Email = teacher.Email,
-                    TotalQuota = teacher.TotalQuota ?? 0,
+                    TotalQuota = totalQuota,
                     UsedQuota = usedQuota,
-                    AvailableQuota = (teacher.TotalQuota ?? 0) - usedQuota,
-                    Projects = _mapper.Map<List<ProjectDto>>(teacher.Projects)
+                    AvailableQuota = availableQuota,
+                    Projects = teacher.Projects.Select(project => new ProjectDto
+                    {
+                        Id = project.Id,
+                        Title = project.Title,
+                        Description = project.Description,
+                        Details = project.Details,
+                        CourseCode = project.CourseCode,
+                        MaxStudents = project.MaxStudents,
+                        CurrentStudents = project.Applications.Count(a => a.Status == ApplicationStatus.Approved),
+                        TotalApplications = project.Applications.Count(a => a.Status == ApplicationStatus.Pending || a.Status == ApplicationStatus.Approved),
+                        MaxApplications = project.MaxStudents + 2,
+                        RemainingApplicationSlots = Math.Max(0, (project.MaxStudents + 2) - project.Applications.Count(a => a.Status == ApplicationStatus.Pending || a.Status == ApplicationStatus.Approved)),
+                        RemainingStudentSlots = Math.Max(0, project.MaxStudents - project.Applications.Count(a => a.Status == ApplicationStatus.Approved)),
+                        IsApplicationFull = project.Applications.Count(a => a.Status == ApplicationStatus.Pending || a.Status == ApplicationStatus.Approved) >= (project.MaxStudents + 2),
+                        Teacher = new UserDto
+                        {
+                            Id = teacher.Id,
+                            FirstName = teacher.FirstName,
+                            LastName = teacher.LastName,
+                            Email = teacher.Email,
+                            Role = teacher.Role
+                        },
+                        IsActive = project.IsActive,
+                        CreatedAt = project.CreatedAt
+                    }).ToList()
                 };
             }).ToList();
 
@@ -48,12 +80,19 @@ namespace GraduationProjectManagement.Services
             var teacher = await _context.Users
                 .Where(u => u.Id == teacherId && u.Role == UserRole.Teacher && u.IsActive)
                 .Include(u => u.Projects.Where(p => p.IsActive))
+                    .ThenInclude(p => p.Applications)
                 .FirstOrDefaultAsync();
 
             if (teacher == null)
                 return null;
 
-            var usedQuota = teacher.Projects.Sum(p => p.CurrentStudents);
+            // Onaylanan öğrenci sayısını hesapla (sadece approved applications)
+            var usedQuota = teacher.Projects
+                .SelectMany(p => p.Applications)
+                .Count(app => app.Status == ApplicationStatus.Approved);
+
+            var totalQuota = teacher.TotalQuota ?? 0;
+            var availableQuota = Math.Max(0, totalQuota - usedQuota);
             
             return new TeacherWithQuotaDto
             {
@@ -61,10 +100,34 @@ namespace GraduationProjectManagement.Services
                 FirstName = teacher.FirstName,
                 LastName = teacher.LastName,
                 Email = teacher.Email,
-                TotalQuota = teacher.TotalQuota ?? 0,
+                TotalQuota = totalQuota,
                 UsedQuota = usedQuota,
-                AvailableQuota = (teacher.TotalQuota ?? 0) - usedQuota,
-                Projects = _mapper.Map<List<ProjectDto>>(teacher.Projects)
+                AvailableQuota = availableQuota,
+                Projects = teacher.Projects.Select(project => new ProjectDto
+                {
+                    Id = project.Id,
+                    Title = project.Title,
+                    Description = project.Description,
+                    Details = project.Details,
+                    CourseCode = project.CourseCode,
+                    MaxStudents = project.MaxStudents,
+                    CurrentStudents = project.Applications.Count(a => a.Status == ApplicationStatus.Approved),
+                    TotalApplications = project.Applications.Count(a => a.Status == ApplicationStatus.Pending || a.Status == ApplicationStatus.Approved),
+                    MaxApplications = project.MaxStudents + 2,
+                    RemainingApplicationSlots = Math.Max(0, (project.MaxStudents + 2) - project.Applications.Count(a => a.Status == ApplicationStatus.Pending || a.Status == ApplicationStatus.Approved)),
+                    RemainingStudentSlots = Math.Max(0, project.MaxStudents - project.Applications.Count(a => a.Status == ApplicationStatus.Approved)),
+                    IsApplicationFull = project.Applications.Count(a => a.Status == ApplicationStatus.Pending || a.Status == ApplicationStatus.Approved) >= (project.MaxStudents + 2),
+                    Teacher = new UserDto
+                    {
+                        Id = teacher.Id,
+                        FirstName = teacher.FirstName,
+                        LastName = teacher.LastName,
+                        Email = teacher.Email,
+                        Role = teacher.Role
+                    },
+                    IsActive = project.IsActive,
+                    CreatedAt = project.CreatedAt
+                }).ToList()
             };
         }
     }

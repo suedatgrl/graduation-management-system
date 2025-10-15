@@ -230,6 +230,10 @@
   @apply text-gray-600 text-sm mb-4 line-clamp-3;
 }
 
+.project-details {
+  @apply text-gray-600 text-sm mb-4 line-clamp-3;
+}
+
 .project-meta {
   @apply flex items-center text-sm text-gray-500 mb-2;
 }

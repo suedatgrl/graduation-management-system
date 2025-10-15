@@ -41,6 +41,9 @@ const ApplicationModal = ({ project, onSubmit, onClose }) => {
         <div className="mb-4 p-4 bg-gray-50 rounded-lg">
           <h4 className="font-medium text-gray-900 mb-2">{project.title}</h4>
           <p className="text-sm text-gray-600 mb-2">{project.description}</p>
+          <p className="text-sm text-gray-500">
+              <strong>Proje Açıklaması:</strong> {project.details} 
+            </p>
           {project.teacher && (
             <p className="text-sm text-gray-500">
               <strong>Danışman:</strong> {project.teacher.firstName} {project.teacher.lastName}

@@ -5,6 +5,7 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    details: '',
     maxStudents: 1,
     courseCode: '',
     isActive: true
@@ -33,13 +34,19 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
     }
 
     if (!formData.description.trim()) {
+      setError('Proje konusu gereklidir');
+      setLoading(false);
+      return;
+    }
+
+     if (!formData.details.trim()) {
       setError('Proje açıklaması gereklidir');
       setLoading(false);
       return;
     }
 
     if (!formData.courseCode) {
-      setError('Kurs kodu seçmelisiniz');
+      setError('Ders kodu seçmelisiniz');
       setLoading(false);
       return;
     }
@@ -123,14 +130,30 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
 
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Proje Açıklaması *
+              Proje Konusu *
             </label>
             <textarea
               id="description"
               name="description"
               required
-              rows={4}
+              rows={2}
               value={formData.description}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Projenin konusunu yazın"
+            />
+          </div>
+
+            <div>
+            <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
+              Proje Açıklaması *
+            </label>
+            <textarea
+              id="details"
+              name="details"
+              required
+              rows={4}
+              value={formData.details}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Proje hakkında detaylı açıklama yazın"
@@ -154,11 +177,7 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
               <option value={3}>3 Öğrenci</option>
               <option value={4}>4 Öğrenci</option>
               <option value={5}>5 Öğrenci</option>
-              <option value={6}>6 Öğrenci</option>
-              <option value={7}>7 Öğrenci</option>
-              <option value={8}>8 Öğrenci</option>
-              <option value={9}>9 Öğrenci</option>
-              <option value={10}>10 Öğrenci</option>
+      
             </select>
           </div>
 

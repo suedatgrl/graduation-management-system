@@ -39,27 +39,27 @@ const ApplicationsModal = ({ project, onClose }) => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 1: return <Clock className="h-5 w-5 text-yellow-500" />;
-      case 2: return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 3: return <XCircle className="h-5 w-5 text-red-500" />;
+      case 0: return <Clock className="h-5 w-5 text-yellow-500" />;
+      case 1: return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 2: return <XCircle className="h-5 w-5 text-red-500" />;
       default: return <Clock className="h-5 w-5 text-gray-500" />;
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
-      case 1: return 'Beklemede';
-      case 2: return 'Onaylandı';
-      case 3: return 'Reddedildi';
+      case 0: return 'Beklemede';
+      case 1: return 'Onaylandı';
+      case 2: return 'Reddedildi';
       default: return 'Bilinmeyen';
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 1: return 'bg-yellow-100 text-yellow-800';
-      case 2: return 'bg-green-100 text-green-800';
-      case 3: return 'bg-red-100 text-red-800';
+      case 0: return 'bg-yellow-100 text-yellow-800';
+      case 1: return 'bg-green-100 text-green-800';
+      case 2: return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -107,11 +107,11 @@ const ApplicationsModal = ({ project, onClose }) => {
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-900">
-                        {application.studentName}
+                        {application.student.firstName} {application.student.lastName}
                       </h4>
-                      <p className="text-sm text-gray-500">{application.studentEmail}</p>
-                      {application.studentNumber && (
-                        <p className="text-sm text-gray-500">#{application.studentNumber}</p>
+                      <p className="text-sm text-gray-500">{application.student.email}</p>
+                      {application.student.studentNumber && (
+                        <p className="text-sm text-gray-500">#{application.student?.studentNumber}</p>
                       )}
                     </div>
                   </div>

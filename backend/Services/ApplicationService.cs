@@ -4,6 +4,7 @@ using GraduationProjectManagement.Data;
 using GraduationProjectManagement.DTOs;
 using GraduationProjectManagement.Models;
 
+
 namespace GraduationProjectManagement.Services
 {
     public class ApplicationService : IApplicationService
@@ -17,62 +18,78 @@ namespace GraduationProjectManagement.Services
             _mapper = mapper;
         }
 
-        public async Task<ApplicationDto?> ApplyToProjectAsync(CreateApplicationDto applicationDto, int studentId)
+        public async Task<ApplicationDto?> ApplyToProjectAsync(CreateApplicationDto dto, int studentId)
         {
-            // Öğrenci zaten bir projeye başvurmuş mu kontrolü
-          var existingApplication = await _context.ProjectApplications
-    .FirstOrDefaultAsync(pa => pa.StudentId == studentId && 
-                            (pa.Status == ApplicationStatus.Pending || pa.Status == ApplicationStatus.Approved));
-
-if (existingApplication != null)
-{
-    return null; // Zaten aktif bir başvurusu var (beklemede veya onaylanmış)
-}
-
-            // Aynı projeye daha önce başvurmuş mu kontrolü
-            var duplicateApplication = await _context.ProjectApplications
-                .FirstOrDefaultAsync(pa => pa.StudentId == studentId && pa.ProjectId == applicationDto.ProjectId);
-
-            if (duplicateApplication != null)
-            {
-                return null; // Aynı projeye zaten başvurmuş
-            }
-
-            // Proje kontrolü
             var project = await _context.Projects
-                .Include(p => p.Teacher)
-                .FirstOrDefaultAsync(p => p.Id == applicationDto.ProjectId && p.IsActive);
+                .Include(p => p.Applications)
+                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.IsActive);
 
-            if (project == null || project.CurrentStudents >= project.MaxStudents)
-            {
-                return null; // Proje bulunamadı veya kontenjan dolu
-            }
+            if (project == null)
+                return null;
 
-            // Son tarih kontrolü
-            var deadline = await GetApplicationDeadlineAsync();
-            if (DateTime.UtcNow > deadline)
-            {
-                return null; // Son tarih geçmiş
-            }
+            // Öğrenci daha önce başvurmuş mu kontrol et
+            var existingApplication = await _context.ProjectApplications
+                .FirstOrDefaultAsync(pa => pa.ProjectId == dto.ProjectId && pa.StudentId == studentId);
+
+            if (existingApplication != null)
+                return null;
+
+            // Öğrencinin başka bir aktif başvurusu var mı kontrol et
+            var hasActiveApplication = await _context.ProjectApplications
+                .AnyAsync(pa => pa.StudentId == studentId && 
+                              (pa.Status == ApplicationStatus.Pending || pa.Status == ApplicationStatus.Approved));
+
+            if (hasActiveApplication)
+                return null;
+
+            // Başvuru kontenjanı kontrol et (MaxStudents + 2)
+            var maxApplications = project.MaxStudents + 2;
+            var currentApplicationCount = project.Applications
+                .Count(a => a.Status == ApplicationStatus.Pending || a.Status == ApplicationStatus.Approved);
+
+            if (currentApplicationCount >= maxApplications)
+                return null;
 
             var application = new ProjectApplication
             {
+                ProjectId = dto.ProjectId,
                 StudentId = studentId,
-                ProjectId = applicationDto.ProjectId,
                 AppliedAt = DateTime.UtcNow,
                 Status = ApplicationStatus.Pending
             };
 
             _context.ProjectApplications.Add(application);
+
+            // Project'in TotalApplications sayısını güncelle
+            await UpdateProjectCountersAsync(project.Id);
+
             await _context.SaveChangesAsync();
 
-            // İlişkili verileri yükle
-            await _context.Entry(application)
-                .Reference(a => a.Student)
-                .LoadAsync();
-            await _context.Entry(application)
-                .Reference(a => a.Project)
-                .LoadAsync();
+            var result = await _context.ProjectApplications
+                .Include(pa => pa.Project)
+                .Include(pa => pa.Student)
+                .FirstOrDefaultAsync(pa => pa.Id == application.Id);
+
+            return _mapper.Map<ApplicationDto>(result);
+        }
+
+        public async Task<ApplicationDto?> ReviewApplicationAsync(int applicationId, ReviewApplicationDto dto, int teacherId)
+        {
+            var application = await _context.ProjectApplications
+                .Include(pa => pa.Project)
+                .Include(pa => pa.Student)
+                .FirstOrDefaultAsync(pa => pa.Id == applicationId && pa.Project.TeacherId == teacherId);
+
+            if (application == null || application.Status != ApplicationStatus.Pending)
+                return null;
+
+            application.Status = dto.Status;
+            application.ReviewedAt = DateTime.UtcNow;
+
+            // Project counter'larını güncelle
+            await UpdateProjectCountersAsync(application.ProjectId);
+
+            await _context.SaveChangesAsync();
 
             return _mapper.Map<ApplicationDto>(application);
         }
@@ -101,36 +118,24 @@ if (existingApplication != null)
             return _mapper.Map<IEnumerable<ApplicationDto>>(applications);
         }
 
-        public async Task<ApplicationDto?> ReviewApplicationAsync(int applicationId, ReviewApplicationDto reviewDto, int teacherId)
+        private async Task UpdateProjectCountersAsync(int projectId)
         {
-            var application = await _context.ProjectApplications
-                .Include(pa => pa.Project)
-                .Include(pa => pa.Student)
-                .FirstOrDefaultAsync(pa => pa.Id == applicationId && pa.Project.TeacherId == teacherId);
+            var project = await _context.Projects
+                .Include(p => p.Applications)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
 
-            if (application == null || application.Status != ApplicationStatus.Pending)
+            if (project != null)
             {
-                return null;
+                // Onaylanan öğrenci sayısı
+                project.CurrentStudents = project.Applications
+                    .Count(a => a.Status == ApplicationStatus.Approved);
+
+                // Toplam aktif başvuru sayısı (pending + approved)
+                project.TotalApplications = project.Applications
+                    .Count(a => a.Status == ApplicationStatus.Pending || a.Status == ApplicationStatus.Approved);
+
+                _context.Projects.Update(project);
             }
-
-            // Eğer onaylanıyorsa, projenin kontenjanı kontrol et
-            if (reviewDto.Status == ApplicationStatus.Approved)
-            {
-                if (application.Project.CurrentStudents >= application.Project.MaxStudents)
-                {
-                    return null; // Kontenjan dolu
-                }
-
-                // Proje sayısını artır
-                application.Project.CurrentStudents++;
-            }
-
-            application.Status = reviewDto.Status;
-            application.ReviewedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return _mapper.Map<ApplicationDto>(application);
         }
 
         public async Task<bool> WithdrawApplicationAsync(int applicationId, int studentId)
@@ -139,42 +144,21 @@ if (existingApplication != null)
                 .Include(pa => pa.Project)
                 .FirstOrDefaultAsync(pa => pa.Id == applicationId && pa.StudentId == studentId);
 
-            if (application == null || application.Status == ApplicationStatus.Approved)
-            {
-                return false; // Bulunamadı veya zaten onaylanmış
-            }
-            await _context.SaveChangesAsync();
+            if (application == null || application.Status != ApplicationStatus.Pending)
+                return false;
 
+            _context.ProjectApplications.Remove(application);
+
+            // Project counter'larını güncelle
+            await UpdateProjectCountersAsync(application.ProjectId);
+
+            await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<bool> CanStudentApplyAsync(int studentId)
+        public Task<bool> CanStudentApplyAsync(int studentId)
         {
-            // Öğrencinin onaylanmış bir başvurusu var mı?
-            var hasApprovedApplication = await _context.ProjectApplications
-                .AnyAsync(pa => pa.StudentId == studentId && pa.Status == ApplicationStatus.Approved);
-
-            if (hasApprovedApplication)
-            {
-                return false;
-            }
-
-            // Son tarih geçmiş mi?
-            var deadline = await GetApplicationDeadlineAsync();
-            return DateTime.UtcNow <= deadline;
-        }
-
-        private async Task<DateTime> GetApplicationDeadlineAsync()
-        {
-            var setting = await _context.SystemSettings
-                .FirstOrDefaultAsync(s => s.Key == "ApplicationDeadline");
-
-            if (setting != null && DateTime.TryParse(setting.Value, out var deadline))
-            {
-                return deadline;
-            }
-
-            return DateTime.UtcNow.AddDays(-1); // Varsayılan olarak geçmiş bir tarih
+            throw new NotImplementedException();
         }
     }
 }

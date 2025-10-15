@@ -9,7 +9,7 @@ namespace GraduationProjectManagement.DTOs
         public int ProjectId { get; set; }
         public string ProjectTitle { get; set; } = string.Empty;
         public UserDto Student { get; set; } = null!;
-        public ApplicationStatus Status { get; set; }
+        public string Status { get; set; } = string.Empty;
         public DateTime AppliedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }
     }

@@ -5,6 +5,7 @@ const EditProjectModal = ({ project, onSubmit, onClose }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    details: '',
     courseCode: '',
     maxStudents: 1,
     requirements: '',
@@ -17,6 +18,7 @@ const EditProjectModal = ({ project, onSubmit, onClose }) => {
       setFormData({
         title: project.title || '',
         description: project.description || '',
+        details: project.details || '',
         courseCode: project.courseCode || '',
         maxStudents: project.maxStudents || 1,
         isActive: project.isActive !== undefined ? project.isActive : true
@@ -68,7 +70,7 @@ const EditProjectModal = ({ project, onSubmit, onClose }) => {
 
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Proje Açıklaması
+              Proje Konusu
             </label>
             <textarea
               id="description"
@@ -76,10 +78,27 @@ const EditProjectModal = ({ project, onSubmit, onClose }) => {
               value={formData.description}
               onChange={handleChange}
               required
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+
+          <div>
+            <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
+              Proje Açıklaması
+            </label>
+            <textarea
+              id="details"
+              name="details"
+              value={formData.details}
+              onChange={handleChange}
+              required
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
 
           <div>
             <label htmlFor="courseCode" className="block text-sm font-medium text-gray-700 mb-1">
@@ -115,6 +134,7 @@ const EditProjectModal = ({ project, onSubmit, onClose }) => {
               <option value={2}>2 Öğrenci</option>
               <option value={3}>3 Öğrenci</option>
               <option value={4}>4 Öğrenci</option>
+              <option value={5}>5 Öğrenci</option>
             </select>
           </div>
 
