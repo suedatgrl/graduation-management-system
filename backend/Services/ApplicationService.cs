@@ -103,7 +103,22 @@ namespace GraduationProjectManagement.Services
                 .OrderByDescending(pa => pa.AppliedAt)
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<ApplicationDto>>(applications);
+               foreach (var app in applications)
+    {
+        Console.WriteLine($"Raw Application {app.Id}: Status = {app.Status} ({(int)app.Status})");
+    }
+
+    var result = _mapper.Map<IEnumerable<ApplicationDto>>(applications);
+    
+    // Mapped result'ı da kontrol edin
+    foreach (var dto in result)
+    {
+        Console.WriteLine($"Mapped Application {dto.Id}: Status = '{dto.Status}'");
+    }
+
+    return result;
+
+
         }
 
         public async Task<IEnumerable<ApplicationDto>> GetProjectApplicationsAsync(int projectId, int teacherId)

@@ -34,14 +34,45 @@ const StudentDashboard = () => {
     filterProjects();
   }, [projects, searchTerm]);
 
-  useEffect(() => {
-    // Aktif başvuru kontrolü - Pending veya Approved durumunda olan başvuruları kontrol et
-    const activeApp = myApplications.find(app => 
-      app.status === 'Pending' || app.status === 'Approved'
-    );
+useEffect(() => {
+  // Aktif başvuru kontrolü - hem string hem enum değerlerini kontrol et
+  const activeApp = myApplications.find(app => {
+    const status = app.status;
+    console.log('Application status:', status, 'type:', typeof status); // Debug
+    
+    // String formatı kontrolü
+    if (typeof status === 'string') {
+      return status === 'Pending' || status === 'Approved';
+    }
+    // Number formatı kontrolü
+    return status === 1 || status === 2;
+  });
+  
+  setHasActiveApplication(!!activeApp);
+  setActiveApplication(activeApp);
+}, [myApplications]);
+
+ const checkActiveApplication = () => {
+    console.log('Checking active applications:', myApplications);
+    
+    const activeApp = myApplications.find(app => {
+      const status = app.status;
+      console.log(`App ${app.id}: status = "${status}" (${typeof status})`);
+      
+      // Hem string hem number formatlarını kontrol et
+      if (typeof status === 'string') {
+        return status === 'Pending' || status === 'Approved';
+      } else if (typeof status === 'number') {
+        return status === 1 || status === 2;
+      }
+      return false;
+    });
+    
+    console.log('Active application found:', activeApp);
     setHasActiveApplication(!!activeApp);
     setActiveApplication(activeApp);
-  }, [myApplications]);
+  };
+
 
 const fetchData = async () => {
   try {
@@ -148,18 +179,41 @@ const fetchData = async () => {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const normalizeStatus = (status) => {
+    if (typeof status === 'string') {
+      switch (status.toLowerCase()) {
+        case 'pending': return 1;
+        case 'approved': return 2;
+        case 'rejected': return 3;
+        default: return status;
+      }
+    }
+    return status;
+  };
+
+const getStatusIcon = (status) => {
+  // String kontrolü
+  if (typeof status === 'string') {
     switch (status) {
       case 'Approved':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'Rejected':
         return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
+      default: // Pending
         return <Clock className="h-5 w-5 text-yellow-500" />;
     }
-  };
+  }
+  // Number kontrolü
+  switch (status) {
+    case 2: return <CheckCircle className="h-5 w-5 text-green-500" />;
+    case 3: return <XCircle className="h-5 w-5 text-red-500" />;
+    default: return <Clock className="h-5 w-5 text-yellow-500" />;
+  }
+};
 
-  const getStatusColor = (status) => {
+const getStatusColor = (status) => {
+  // String kontrolü
+  if (typeof status === 'string') {
     switch (status) {
       case 'Approved':
         return 'bg-green-100 text-green-800';
@@ -168,9 +222,18 @@ const fetchData = async () => {
       default:
         return 'bg-yellow-100 text-yellow-800';
     }
-  };
+  }
+  // Number kontrolü
+  switch (status) {
+    case 2: return 'bg-green-100 text-green-800';
+    case 3: return 'bg-red-100 text-red-800';
+    default: return 'bg-yellow-100 text-yellow-800';
+  }
+};
 
-  const getStatusText = (status) => {
+const getStatusText = (status) => {
+  // String kontrolü
+  if (typeof status === 'string') {
     switch (status) {
       case 'Approved':
         return 'Onaylandı';
@@ -179,7 +242,20 @@ const fetchData = async () => {
       default:
         return 'Beklemede';
     }
+  }
+  // Number kontrolü
+  switch (status) {
+    case 2: return 'Onaylandı';
+    case 3: return 'Reddedildi';
+    default: return 'Beklemede';
+  }
+};
+
+  const isActiveStatus = (status) => {
+    const normalizedStatus = normalizeStatus(status);
+    return normalizedStatus === 1 || normalizedStatus === 2 || status === 'Pending' || status === 'Approved';
   };
+
 
   if (loading) {
     return (
@@ -334,43 +410,51 @@ const fetchData = async () => {
           {activeTab === 'applications' && (
             <div className="space-y-4">
               {myApplications.length > 0 ? (
-                myApplications.map((application) => (
-                  <div key={application.id} className={`rounded-lg p-6 ${
-                    application.status === 'Pending' || application.status === 'Approved' 
-                      ? 'bg-yellow-50 border border-yellow-200' 
-                      : 'bg-gray-50'
-                  }`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h3 className="text-lg font-medium text-gray-900">
-                            {application.projectTitle}
-                          </h3>
-                          {(application.status === 'Pending' || application.status === 'Approved') && (
-                            <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
-                              Aktif
-                            </span>
+                myApplications.map((application) => {
+                  const isActive = isActiveStatus(application.status);
+                  
+                  return (
+                    <div key={application.id} className={`rounded-lg p-6 border ${
+                      isActive
+                        ? 'bg-yellow-50 border-yellow-200' 
+                        : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h3 className="text-lg font-medium text-gray-900">
+                              {application.projectTitle}
+                            </h3>
+                            {isActive && (
+                              <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+                                Aktif
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Başvuru Tarihi: {new Date(application.appliedAt).toLocaleDateString('tr-TR')}
+                          </p>
+                          {application.reviewedAt && (
+                            <p className="text-sm text-gray-600">
+                              Değerlendirme Tarihi: {new Date(application.reviewedAt).toLocaleDateString('tr-TR')}
+                            </p>
+                          )}
+                          {application.reviewNotes && (
+                            <p className="text-sm text-gray-700 mt-2 bg-blue-50 p-2 rounded">
+                              <strong>Değerlendirme Notu:</strong> {application.reviewNotes}
+                            </p>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Başvuru Tarihi: {new Date(application.appliedAt).toLocaleDateString('tr-TR')}
-                        </p>
-                    
-                        {application.reviewNotes && (
-                          <p className="text-sm text-gray-700 mt-2">
-                            <strong>Değerlendirme Notu:</strong> {application.reviewNotes}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(application.status)}
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(application.status)}`}>
-                          {getStatusText(application.status)}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(application.status)}
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(application.status)}`}>
+                            {getStatusText(application.status)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-12">
                   <Clock className="mx-auto h-12 w-12 text-gray-400" />
@@ -380,6 +464,7 @@ const fetchData = async () => {
               )}
             </div>
           )}
+
 
           {activeTab === 'teachers' && (
   <div className="space-y-4">

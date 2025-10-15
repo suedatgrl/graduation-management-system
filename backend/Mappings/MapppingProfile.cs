@@ -28,10 +28,11 @@ namespace GraduationProjectManagement.Mappings
             CreateMap<UpdateProjectDto, Project>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
-            // Application mappings
+            // Application mappings - STATUS MAPPING EKLENDİ
             CreateMap<ProjectApplication, ApplicationDto>()
                 .ForMember(dest => dest.ProjectTitle, opt => opt.MapFrom(src => src.Project.Title))
-                .ForMember(dest => dest.Student, opt => opt.MapFrom(src => src.Student));
+                .ForMember(dest => dest.Student, opt => opt.MapFrom(src => src.Student))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
         }
     }
 }
