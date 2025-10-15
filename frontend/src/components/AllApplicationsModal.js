@@ -49,17 +49,31 @@ const AllApplicationsModal = ({ projects, onClose }) => {
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 1: return <Clock className="h-5 w-5 text-yellow-500" />;
-      case 2: return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 3: return <XCircle className="h-5 w-5 text-red-500" />;
-      default: return <Clock className="h-5 w-5 text-gray-500" />;
+  const normalizeStatus = (status) => {
+  if (typeof status === 'string') {
+    switch (status.toLowerCase()) {
+      case 'pending': return 1;
+      case 'approved': return 2;
+      case 'rejected': return 3;
+      default: return status;
     }
-  };
+  }
+  return status;
+};
+
+  const getStatusIcon = (status) => {
+    const normalizedStatus = typeof status === 'string' ? normalizeStatus(status) : status;
+  switch (normalizedStatus) {
+    case 1: return <Clock className="h-5 w-5 text-yellow-500" />;
+    case 2: return <CheckCircle className="h-5 w-5 text-green-500" />;
+    case 3: return <XCircle className="h-5 w-5 text-red-500" />;
+    default: return <Clock className="h-5 w-5 text-gray-500" />;
+  }
+};
 
   const getStatusText = (status) => {
-    switch (status) {
+    const normalizedStatus = typeof status === 'string' ? normalizeStatus(status) : status;
+    switch (normalizedStatus) {
       case 1: return 'Beklemede';
       case 2: return 'Onaylandı';
       case 3: return 'Reddedildi';
@@ -68,7 +82,8 @@ const AllApplicationsModal = ({ projects, onClose }) => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    const normalizedStatus = typeof status === 'string' ? normalizeStatus(status) : status;
+    switch (normalizedStatus) {
       case 1: return 'bg-yellow-100 text-yellow-800';
       case 2: return 'bg-green-100 text-green-800';
       case 3: return 'bg-red-100 text-red-800';
@@ -167,7 +182,7 @@ const AllApplicationsModal = ({ projects, onClose }) => {
                           </div>
 
                           {/* Action Buttons - Sadece beklemedeki başvurular için */}
-                          {application.status === 2 && (
+                          {normalizeStatus(application.status) === 1 && (
                             <div className="flex items-center space-x-2">
                               <button
                                 onClick={() => setSelectedApplication(application)}

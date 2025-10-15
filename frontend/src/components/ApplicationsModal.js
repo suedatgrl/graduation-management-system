@@ -48,64 +48,75 @@ const ApplicationsModal = ({ project, onClose }) => {
   };
 
   // Status yardımcı fonksiyonları
-  const normalizeStatus = (status) => {
-    if (typeof status === 'string') {
-      switch (status.toLowerCase()) {
-        case 'pending': return 1;
-        case 'approved': return 2;
-        case 'rejected': return 3;
-        default: return status;
-      }
+const normalizeStatus = (status) => {
+  if (typeof status === 'string') {
+    switch (status.toLowerCase()) {
+      case 'pending': return 1;
+      case 'approved': return 2;
+      case 'rejected': return 3;
+      default: return status;
     }
-    return status;
-  };
+  }
+  return status;
+};
 
-  const getStatusIcon = (status) => {
-    const normalizedStatus = normalizeStatus(status);
-    switch (normalizedStatus) {
-      case 2:
-      case 'Approved':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 3:
-      case 'Rejected':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return <Clock className="h-5 w-5 text-yellow-500" />;
-    }
-  };
 
-  const getStatusText = (status) => {
-    const normalizedStatus = normalizeStatus(status);
-    switch (normalizedStatus) {
-      case 2:
-      case 'Approved':
-        return 'Onaylandı';
-      case 3:
-      case 'Rejected':
-        return 'Reddedildi';
-      default:
-        return 'Beklemede';
-    }
-  };
+const getStatusIcon = (status) => {
+  const normalizedStatus = normalizeStatus(status);
+  switch (normalizedStatus) {
+    case 1: // Pending
+    case 'Pending':
+      return <Clock className="h-5 w-5 text-yellow-500" />;
+    case 2: // Approved
+    case 'Approved':
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
+    case 3: // Rejected
+    case 'Rejected':
+      return <XCircle className="h-5 w-5 text-red-500" />;
+    default:
+      return <Clock className="h-5 w-5 text-gray-500" />;
+  }
+};
+const getStatusText = (status) => {
+  const normalizedStatus = normalizeStatus(status);
+  switch (normalizedStatus) {
+    case 1:
+    case 'Pending':
+      return 'Beklemede';
+    case 2:
+    case 'Approved':
+      return 'Onaylandı';
+    case 3:
+    case 'Rejected':
+      return 'Reddedildi';
+    default:
+      return 'Bilinmeyen';
+  }
+};
 
-  const getStatusColor = (status) => {
-    const normalizedStatus = normalizeStatus(status);
-    switch (normalizedStatus) {
-      case 2:
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
-      case 3:
-      case 'Rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-yellow-100 text-yellow-800';
-    }
-  };
+// getStatusColor fonksiyonunu güncelleyin:
+const getStatusColor = (status) => {
+  const normalizedStatus = normalizeStatus(status);
+  switch (normalizedStatus) {
+    case 1:
+    case 'Pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 2:
+    case 'Approved':
+      return 'bg-green-100 text-green-800';
+    case 3:
+    case 'Rejected':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
 
-  const isPendingStatus = (status) => {
-    const normalizedStatus = normalizeStatus(status);
-    return normalizedStatus === 1 || status === 'Pending';
-  };
+
+const isPendingStatus = (status) => {
+  const normalizedStatus = normalizeStatus(status);
+  return normalizedStatus === 1 || status === 'Pending';
+};
 
   if (loading) {
     return (

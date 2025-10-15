@@ -21,7 +21,7 @@ namespace GraduationProjectManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetProjects([FromQuery] string courseCode)
         {
-            var projects = await _projectService.GetAllProjectsAsync( courseCode);
+            var projects = await _projectService.GetAllProjectsAsync(courseCode);
             return Ok(projects);
         }
 

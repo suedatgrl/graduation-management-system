@@ -52,26 +52,22 @@ useEffect(() => {
   setActiveApplication(activeApp);
 }, [myApplications]);
 
- const checkActiveApplication = () => {
-    console.log('Checking active applications:', myApplications);
+const checkActiveApplication = () => {
+  console.log('Checking active applications:', myApplications);
+  
+  const activeApp = myApplications.find(app => {
+    const status = app.status;
+    console.log(`App ${app.id}: status = "${status}" (${typeof status})`);
     
-    const activeApp = myApplications.find(app => {
-      const status = app.status;
-      console.log(`App ${app.id}: status = "${status}" (${typeof status})`);
-      
-      // Hem string hem number formatlarını kontrol et
-      if (typeof status === 'string') {
-        return status === 'Pending' || status === 'Approved';
-      } else if (typeof status === 'number') {
-        return status === 1 || status === 2;
-      }
-      return false;
-    });
-    
-    console.log('Active application found:', activeApp);
-    setHasActiveApplication(!!activeApp);
-    setActiveApplication(activeApp);
-  };
+    const normalizedStatus = normalizeStatus(status);
+    // Pending (1) veya Approved (2) durumlarını kontrol et
+    return normalizedStatus === 1 || normalizedStatus === 2;
+  });
+  
+  console.log('Active application found:', activeApp);
+  setHasActiveApplication(!!activeApp);
+  setActiveApplication(activeApp);
+};
 
 
 const fetchData = async () => {
@@ -179,76 +175,71 @@ const fetchData = async () => {
     }
   };
 
-  const normalizeStatus = (status) => {
-    if (typeof status === 'string') {
-      switch (status.toLowerCase()) {
-        case 'pending': return 1;
-        case 'approved': return 2;
-        case 'rejected': return 3;
-        default: return status;
-      }
-    }
-    return status;
-  };
-
-const getStatusIcon = (status) => {
-  // String kontrolü
+const normalizeStatus = (status) => {
   if (typeof status === 'string') {
-    switch (status) {
-      case 'Approved':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'Rejected':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      default: // Pending
-        return <Clock className="h-5 w-5 text-yellow-500" />;
+    switch (status.toLowerCase()) {
+      case 'pending': return 1;
+      case 'approved': return 2;
+      case 'rejected': return 3;
+      default: return status;
     }
   }
-  // Number kontrolü
-  switch (status) {
-    case 2: return <CheckCircle className="h-5 w-5 text-green-500" />;
-    case 3: return <XCircle className="h-5 w-5 text-red-500" />;
-    default: return <Clock className="h-5 w-5 text-yellow-500" />;
+  return status;
+};
+
+
+const getStatusIcon = (status) => {
+  const normalizedStatus = normalizeStatus(status);
+  switch (normalizedStatus) {
+    case 1:
+    case 'Pending':
+      return <Clock className="h-5 w-5 text-yellow-500" />;
+    case 2:
+    case 'Approved':
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
+    case 3:
+    case 'Rejected':
+      return <XCircle className="h-5 w-5 text-red-500" />;
+    default:
+      return <Clock className="h-5 w-5 text-gray-500" />;
   }
 };
 
 const getStatusColor = (status) => {
   // String kontrolü
-  if (typeof status === 'string') {
-    switch (status) {
+  const normalizedStatus = normalizeStatus(status);
+
+    switch (normalizedStatus) {
+      case 2:
       case 'Approved':
         return 'bg-green-100 text-green-800';
+      case 3:
       case 'Rejected':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-yellow-100 text-yellow-800';
     }
-  }
-  // Number kontrolü
-  switch (status) {
-    case 2: return 'bg-green-100 text-green-800';
-    case 3: return 'bg-red-100 text-red-800';
-    default: return 'bg-yellow-100 text-yellow-800';
-  }
+  
+
 };
 
 const getStatusText = (status) => {
+
+  const normalizedStatus = normalizeStatus(status);
   // String kontrolü
-  if (typeof status === 'string') {
-    switch (status) {
+
+    switch (normalizedStatus) {
+      case 2:
       case 'Approved':
         return 'Onaylandı';
+      case 3:
       case 'Rejected':
         return 'Reddedildi';
       default:
         return 'Beklemede';
     }
-  }
-  // Number kontrolü
-  switch (status) {
-    case 2: return 'Onaylandı';
-    case 3: return 'Reddedildi';
-    default: return 'Beklemede';
-  }
+  
+
 };
 
   const isActiveStatus = (status) => {

@@ -12,6 +12,8 @@ namespace GraduationProjectManagement.DTOs
         public string Status { get; set; } = string.Empty;
         public DateTime AppliedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }
+
+        public string? ReviewNotes { get; set; }
     }
     
     public class CreateApplicationDto
