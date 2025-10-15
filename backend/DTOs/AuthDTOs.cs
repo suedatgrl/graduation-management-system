@@ -5,14 +5,11 @@ namespace GraduationProjectManagement.DTOs
 {
     public class LoginRequestDto
     {
-        [Required]
-        public string Username { get; set; } = string.Empty; // Can be email or school number
+        [Required(ErrorMessage = "Kullanıcı adı veya e-mail gereklidir.")]
+        public string Username { get; set; } = string.Empty; // E-mail, öğrenci numarası veya okul numarası
         
-        [Required]
+        [Required(ErrorMessage = "Şifre gereklidir.")]
         public string Password { get; set; } = string.Empty;
-        
-        [Required]
-        public UserRole Role { get; set; }
     }
     
     public class RegisterRequestDto
@@ -45,7 +42,7 @@ namespace GraduationProjectManagement.DTOs
         public string Token { get; set; } = string.Empty;
         public UserDto User { get; set; } = null!;
     }
-    
+
     public class UserDto
     {
         public int Id { get; set; }
@@ -54,11 +51,23 @@ namespace GraduationProjectManagement.DTOs
         public string Email { get; set; } = string.Empty;
         public UserRole Role { get; set; }
         public string? StudentNumber { get; set; }
-        public string? SchoolNumber { get; set; }
         public string? TcIdentityNumber { get; set; }
         public string? CourseCode { get; set; }
+
+        public int? TotalQuota { get; set; }
     }
     
+        public class TeacherWithQuotaDto
+    {
+        public int Id { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public int? TotalQuota { get; set; }
+        public int UsedQuota { get; set; } // Kullanılan kontenjan
+        public int AvailableQuota { get; set; } // Kalan kontenjan
+        public List<ProjectDto> Projects { get; set; } = new List<ProjectDto>();
+    }
     public class ForgotPasswordDto
     {
         [Required]

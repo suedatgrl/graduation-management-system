@@ -27,11 +27,13 @@ namespace GraduationProjectManagement.Models
         
         // Student fields
         public string? StudentNumber { get; set; }
-        public string? SchoolNumber { get; set; }
+
         public string? CourseCode { get; set; } // BLM for Turkish, COM for English
         
         // Common field for both students and teachers
         public string? TcIdentityNumber { get; set; }
+
+         public int? TotalQuota { get; set; } //öğretmen için toplam kontenjan
         
         // Password reset fields
         public string? PasswordResetToken { get; set; }

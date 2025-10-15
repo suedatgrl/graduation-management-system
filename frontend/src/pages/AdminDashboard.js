@@ -55,8 +55,7 @@ const AdminDashboard = () => {
         user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.studentNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.schoolNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+        user.studentNumber?.toLowerCase().includes(searchTerm.toLowerCase()) 
       );
     }
 

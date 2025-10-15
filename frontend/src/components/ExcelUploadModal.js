@@ -9,7 +9,6 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
     email: '',
     password: '',
     studentNumber: '',
-    schoolNumber: '',
     courseCode: '',
     tcIdentityNumber: ''
   });
@@ -208,20 +207,6 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="12345678"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="schoolNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                    Okul Numarası
-                  </label>
-                  <input
-                    type="text"
-                    id="schoolNumber"
-                    name="schoolNumber"
-                    value={formData.schoolNumber}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="87654321"
                   />
                 </div>
               </div>

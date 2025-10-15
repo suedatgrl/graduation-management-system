@@ -93,13 +93,13 @@ namespace GraduationProjectManagement.Services
             }
 
             // Check if school number already exists
-            if (await _context.Users.AnyAsync(u => u.SchoolNumber == studentDto.SchoolNumber))
+            if (await _context.Users.AnyAsync(u => u.StudentNumber == studentDto.StudentNumber))
             {
                 throw new InvalidOperationException("Bu okul numarası ile kayıtlı öğrenci zaten mevcut.");
             }
 
             // Generate username (school number) and password (first 8 digits of TC number)
-            var username = studentDto.SchoolNumber;
+            var username = studentDto.StudentNumber;
             var password = studentDto.TcIdentityNumber.Substring(0, 8);
 
             var user = new User
@@ -110,8 +110,7 @@ namespace GraduationProjectManagement.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                 Role = UserRole.Student,
                 TcIdentityNumber = studentDto.TcIdentityNumber,
-                SchoolNumber = studentDto.SchoolNumber,
-                StudentNumber = studentDto.SchoolNumber, // Using school number as student number
+                StudentNumber = studentDto.StudentNumber, // Using school number as student number
                 CourseCode = studentDto.CourseCode,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
@@ -185,19 +184,19 @@ namespace GraduationProjectManagement.Services
                             var lastName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
                             var email = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
                             var tcNumber = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
-                            var schoolNumber = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
+                            var studentNumber = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
                             var courseCode = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
 
                             if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || 
                                 string.IsNullOrEmpty(email) || string.IsNullOrEmpty(tcNumber) || 
-                                string.IsNullOrEmpty(schoolNumber))
+                                string.IsNullOrEmpty(studentNumber))
                             {
                                 continue; // Skip invalid rows
                             }
 
                             // Check duplicates
                             if (await _context.Users.AnyAsync(u => u.Email == email || 
-                                u.TcIdentityNumber == tcNumber || u.SchoolNumber == schoolNumber))
+                                u.TcIdentityNumber == tcNumber || u.StudentNumber == studentNumber))
                             {
                                 continue; // Skip duplicates
                             }
@@ -211,8 +210,7 @@ namespace GraduationProjectManagement.Services
                                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                                 Role = UserRole.Student,
                                 TcIdentityNumber = tcNumber,
-                                SchoolNumber = schoolNumber,
-                                StudentNumber = schoolNumber,
+                                StudentNumber = studentNumber,
                                 CourseCode = courseCode,
                                 CreatedAt = DateTime.UtcNow,
                                 IsActive = true

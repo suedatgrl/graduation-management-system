@@ -199,7 +199,7 @@ const handleApplicationSubmit = async (applicationData) => {
             >
               <div className="flex items-center space-x-2">
                 <Clock className="h-5 w-5" />
-                <span>Başvurularım ({myApplications.length})</span>
+                <span>Başvuru Durumu</span>
               </div>
             </button>
           </nav>

@@ -6,8 +6,7 @@ import { Eye, EyeOff, User, Lock, Mail } from 'lucide-react';
 const Login = () => {
   const [formData, setFormData] = useState({
     username: '',
-    password: '',
-    role: 1 // Default to Student
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -16,20 +15,24 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const roles = [
-    { value: 1, label: 'Öğrenci', color: 'bg-blue-500' },
-    { value: 2, label: 'Öğretmen', color: 'bg-green-500' },
-    { value: 3, label: 'Admin', color: 'bg-purple-500' }
-  ];
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    try { 
-      await login(formData);
-      navigate('/dashboard');
+    try {
+      const response = await login(formData);
+      
+      // Backend'den gelen kullanıcı rolüne göre yönlendirme
+      if (response.user.role === 1) { // Student
+        navigate('/dashboard');
+      } else if (response.user.role === 2) { // Teacher
+        navigate('/dashboard');
+      } else if (response.user.role === 3) { // Admin
+        navigate('/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Giriş yapılırken bir hata oluştu');
     } finally {
@@ -44,6 +47,38 @@ const Login = () => {
     });
   };
 
+  // Kullanıcı adı alanı için dinamik bilgi
+  const getUsernameInfo = () => {
+    const isEmail = formData.username.includes('@');
+    const isNumeric = /^\d+$/.test(formData.username);
+
+    if (isEmail) {
+      return {
+        label: 'E-mail',
+        placeholder: 'E-mail adresinizi girin',
+        icon: Mail,
+        helpText: 'E-mail adresiniz ile giriş yapıyorsunuz'
+      };
+    } else if (isNumeric && formData.username.length > 0) {
+      return {
+        label: 'Öğrenci Numarası',
+        placeholder: 'Öğrenci numaranızı girin',
+        icon: User,
+        helpText: 'Öğrenci numaranız ile giriş yapıyorsunuz'
+      };
+    }
+
+    return {
+      label: 'E-mail / Öğrenci Numarası',
+      placeholder: 'E-mail adresiniz veya öğrenci numaranız',
+      icon: User,
+      helpText: ''
+    };
+  };
+
+  const usernameInfo = getUsernameInfo();
+  const IconComponent = usernameInfo.icon;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -56,56 +91,34 @@ const Login = () => {
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Role Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Rol Seçimi
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {roles.map((role) => (
-                  <button
-                    key={role.value}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, role: role.value })}
-                    className={`p-3 rounded-lg text-sm font-medium transition-all ${
-                      formData.role === role.value
-                        ? `${role.color} text-white shadow-lg`
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {role.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Username/Email Field */}
+            {/* Kullanıcı Adı/E-mail Alanı */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                {formData.role === 1 ? 'Öğrenci Numarası' : 'Email'}
+                {usernameInfo.label}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  {formData.role === 1 ? (
-                    <User className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Mail className="h-5 w-5 text-gray-400" />
-                  )}
+                  <IconComponent className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   id="username"
                   name="username"
                   type="text"
+                  autoComplete="username"
                   required
                   value={formData.username}
                   onChange={handleChange}
-                  className="pl-10 block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={formData.role === 1 ? 'Öğrenci numaranızı girin' : 'Email adresinizi girin'}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={usernameInfo.placeholder}
                 />
               </div>
+              {usernameInfo.helpText && (
+                <p className="mt-1 text-xs text-blue-600">{usernameInfo.helpText}</p>
+              )}
+              
             </div>
 
-            {/* Password Field */}
+            {/* Şifre Alanı */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Şifre
@@ -118,10 +131,11 @@ const Login = () => {
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="pl-10 pr-10 block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Şifrenizi girin"
                 />
                 <button
