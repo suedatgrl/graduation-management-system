@@ -28,12 +28,12 @@ const ApplicationsModal = ({ project, onClose }) => {
     }
   };
 
-  const handleReviewApplication = async (applicationId, status, reviewNotes = '') => {
+  const handleReviewApplication = async (applicationId, status, ReviewNotes = '') => {
     try {
       setReviewLoading(true);
       console.log('Reviewing application:', applicationId, 'with status:', status);
       
-      await projectService.reviewApplication(applicationId, status, reviewNotes);
+      await projectService.reviewApplication(applicationId, status, ReviewNotes);
       await fetchApplications(); // Refresh applications
       setSelectedApplication(null);
       
@@ -218,14 +218,14 @@ const isPendingStatus = (status) => {
                     )}
                   </div>
 
-                  {application.reviewNotes && (
+                  {application.ReviewNotes && (
                     <div className="mb-4">
                       <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
                         <div className="flex items-start">
                           <MessageCircle className="h-4 w-4 text-blue-600 mt-0.5 mr-2" />
                           <div>
                             <p className="text-sm font-medium text-blue-800">Değerlendirme Notu:</p>
-                            <p className="text-sm text-blue-700 mt-1">{application.reviewNotes}</p>
+                            <p className="text-sm text-blue-700 mt-1">{application.ReviewNotes}</p>
                           </div>
                         </div>
                       </div>
@@ -310,13 +310,13 @@ const isPendingStatus = (status) => {
 
 // Detaylı değerlendirme modalı
 const ReviewApplicationModal = ({ application, onSubmit, onClose, loading }) => {
-  const [reviewNotes, setReviewNotes] = useState('');
+  const [ReviewNotes, setReviewNotes] = useState('');
   const [decision, setDecision] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (decision !== null) {
-      onSubmit(application.id, decision, reviewNotes.trim());
+      onSubmit(application.id, decision, ReviewNotes.trim());
     }
   };
 
@@ -375,13 +375,13 @@ const ReviewApplicationModal = ({ application, onSubmit, onClose, loading }) => 
             </div>
 
             <div>
-              <label htmlFor="reviewNotes" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="ReviewNotes" className="block text-sm font-medium text-gray-700 mb-2">
                 Değerlendirme Notu (İsteğe bağlı)
               </label>
               <textarea
-                id="reviewNotes"
+                id="ReviewNotes"
                 rows={4}
-                value={reviewNotes}
+                value={ReviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Kararınızın gerekçesini yazabilirsiniz..."

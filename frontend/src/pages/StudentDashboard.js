@@ -4,7 +4,7 @@ import projectService from '../services/projectService';
 import ApplicationModal from '../components/ApplicationModal';
 import TeacherProjectsModal from '../components/TeacherProjectsModal';
 import ProjectCard from '../components/ProjectCard';
-import { Search, Filter, BookOpen, Clock, CheckCircle, XCircle, Users, User, AlertCircle } from 'lucide-react';
+import { Search, Filter, BookOpen, Clock, CheckCircle, XCircle, Users, User, AlertCircle, X } from 'lucide-react';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -16,8 +16,10 @@ const StudentDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [selectedApplication, setSelectedApplication] = useState(null);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [showTeacherProjectsModal, setShowTeacherProjectsModal] = useState(false);
+  const [showApplicationDetailModal, setShowApplicationDetailModal] = useState(false);
   const [activeTab, setActiveTab] = useState('projects');
   const [hasActiveApplication, setHasActiveApplication] = useState(false);
   const [activeApplication, setActiveApplication] = useState(null);
@@ -175,6 +177,12 @@ const fetchData = async () => {
     }
   };
 
+  // Başvuru detayını göster
+  const handleApplicationClick = (application) => {
+    setSelectedApplication(application);
+    setShowApplicationDetailModal(true);
+  };
+
 const normalizeStatus = (status) => {
   if (typeof status === 'string') {
     switch (status.toLowerCase()) {
@@ -256,6 +264,8 @@ const getStatusText = (status) => {
     );
   }
 
+
+  
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -405,11 +415,15 @@ const getStatusText = (status) => {
                   const isActive = isActiveStatus(application.status);
                   
                   return (
-                    <div key={application.id} className={`rounded-lg p-6 border ${
-                      isActive
-                        ? 'bg-yellow-50 border-yellow-200' 
-                        : 'bg-gray-50 border-gray-200'
-                    }`}>
+                    <div 
+                      key={application.id} 
+                      className={`rounded-lg p-6 border cursor-pointer hover:shadow-md transition-shadow ${
+                        isActive
+                          ? 'bg-yellow-50 border-yellow-200' 
+                          : 'bg-gray-50 border-gray-200'
+                      }`}
+                      onClick={() => handleApplicationClick(application)}
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
@@ -421,6 +435,11 @@ const getStatusText = (status) => {
                                 Aktif
                               </span>
                             )}
+                            {application.ReviewNotes && (
+                              <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                                Değerlendirme Notu Var
+                              </span>
+                            )}
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
                             Başvuru Tarihi: {new Date(application.appliedAt).toLocaleDateString('tr-TR')}
@@ -430,11 +449,9 @@ const getStatusText = (status) => {
                               Değerlendirme Tarihi: {new Date(application.reviewedAt).toLocaleDateString('tr-TR')}
                             </p>
                           )}
-                          {application.reviewNotes && (
-                            <p className="text-sm text-gray-700 mt-2 bg-blue-50 p-2 rounded">
-                              <strong>Değerlendirme Notu:</strong> {application.reviewNotes}
-                            </p>
-                          )}
+                          <p className="text-sm text-gray-500 mt-2 italic">
+                            Detaylar için tıklayın
+                          </p>
                         </div>
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(application.status)}
@@ -522,6 +539,183 @@ const getStatusText = (status) => {
           hasActiveApplication={hasActiveApplication}
         />
       )}
+
+      {/* Application Detail Modal */}
+      {showApplicationDetailModal && selectedApplication && (
+        <ApplicationDetailModal
+          application={selectedApplication}
+          onClose={() => setShowApplicationDetailModal(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+// Başvuru Detay Modal Bileşeni
+const ApplicationDetailModal = ({ application, onClose }) => {
+  const normalizeStatus = (status) => {
+    if (typeof status === 'string') {
+      switch (status.toLowerCase()) {
+        case 'pending': return 1;
+        case 'approved': return 2;
+        case 'rejected': return 3;
+        default: return status;
+      }
+    }
+    return status;
+  };
+
+  const getStatusIcon = (status) => {
+    const normalizedStatus = normalizeStatus(status);
+    switch (normalizedStatus) {
+      case 1:
+      case 'Pending':
+        return <Clock className="h-6 w-6 text-yellow-500" />;
+      case 2:
+      case 'Approved':
+        return <CheckCircle className="h-6 w-6 text-green-500" />;
+      case 3:
+      case 'Rejected':
+        return <XCircle className="h-6 w-6 text-red-500" />;
+      default:
+        return <Clock className="h-6 w-6 text-gray-500" />;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    const normalizedStatus = normalizeStatus(status);
+    switch (normalizedStatus) {
+      case 1:
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 2:
+      case 'Approved':
+        return 'bg-green-100 text-green-800';
+      case 3:
+      case 'Rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status) => {
+    const normalizedStatus = normalizeStatus(status);
+    switch (normalizedStatus) {
+      case 1:
+      case 'Pending':
+        return 'Beklemede';
+      case 2:
+      case 'Approved':
+        return 'Onaylandı';
+      case 3:
+      case 'Rejected':
+        return 'Reddedildi';
+      default:
+        return 'Bilinmiyor';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h3 className="text-lg font-bold text-gray-900">Başvuru Detayları</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Proje Bilgileri */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-900 mb-2">Proje</h4>
+            <p className="text-gray-600">{application.projectTitle}</p>
+          </div>
+
+          {/* Durum */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-900 mb-2">Durum</h4>
+            <div className="flex items-center space-x-2">
+              {getStatusIcon(application.status)}
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(application.status)}`}>
+                {getStatusText(application.status)}
+              </span>
+            </div>
+          </div>
+
+          {/* Tarihler */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-900 mb-2">Başvuru Tarihi</h4>
+            <p className="text-gray-600">
+              {new Date(application.appliedAt).toLocaleDateString('tr-TR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+          </div>
+
+          {application.reviewedAt && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-2">Değerlendirme Tarihi</h4>
+              <p className="text-gray-600">
+                {new Date(application.reviewedAt).toLocaleDateString('tr-TR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            </div>
+          )}
+
+          {/* Değerlendirme Notu */}
+          {application.reviewNotes && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-2">Değerlendirme Notu</h4>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-gray-700">{application.reviewNotes}</p>
+              </div>
+            </div>
+          )}
+         
+          {/* Değerlendirme notu yoksa bilgilendirme */}
+          {!application.ReviewNotes && application.reviewedAt && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-2">Değerlendirme Notu</h4>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <p className="text-gray-500 italic">Öğretim üyesi herhangi bir not bırakmamış.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Henüz değerlendirilmemişse */}
+          {!application.reviewedAt && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-2">Değerlendirme Durumu</h4>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-yellow-700">Başvurunuz henüz değerlendirilmemiş. Lütfen bekleyiniz.</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end p-6 border-t border-gray-200">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Kapat
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

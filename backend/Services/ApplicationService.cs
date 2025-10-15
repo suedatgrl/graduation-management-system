@@ -73,27 +73,29 @@ namespace GraduationProjectManagement.Services
             return _mapper.Map<ApplicationDto>(result);
         }
 
-        public async Task<ApplicationDto?> ReviewApplicationAsync(int applicationId, ReviewApplicationDto dto, int teacherId)
-        {
-            var application = await _context.ProjectApplications
-                .Include(pa => pa.Project)
-                .Include(pa => pa.Student)
-                .FirstOrDefaultAsync(pa => pa.Id == applicationId && pa.Project.TeacherId == teacherId);
+       public async Task<ApplicationDto?> ReviewApplicationAsync(int applicationId, ReviewApplicationDto dto, int teacherId)
+{
+    var application = await _context.ProjectApplications
+        .Include(pa => pa.Project)
+        .Include(pa => pa.Student)
+        .FirstOrDefaultAsync(pa => pa.Id == applicationId && pa.Project.TeacherId == teacherId);
 
-            if (application == null || application.Status != ApplicationStatus.Pending)
-                return null;
+    if (application == null || application.Status != ApplicationStatus.Pending)
+        return null;
 
-            application.Status = dto.Status;
-            application.ReviewedAt = DateTime.UtcNow;
+    application.Status = dto.Status;
+    application.ReviewedAt = DateTime.UtcNow;
+    
+    // Bu satır eksikti - ReviewNotes'u kaydet
+    application.ReviewNotes = dto.ReviewNotes;
 
-            // Project counter'larını güncelle
-            await UpdateProjectCountersAsync(application.ProjectId);
+    // Project counter'larını güncelle
+    await UpdateProjectCountersAsync(application.ProjectId);
 
-            await _context.SaveChangesAsync();
+    await _context.SaveChangesAsync();
 
-            return _mapper.Map<ApplicationDto>(application);
-        }
-
+    return _mapper.Map<ApplicationDto>(application);
+}
         public async Task<IEnumerable<ApplicationDto>> GetStudentApplicationsAsync(int studentId)
         {
             var applications = await _context.ProjectApplications

@@ -24,10 +24,11 @@ namespace GraduationProjectManagement.DTOs
 
     }
     
-    public class ReviewApplicationDto
+  public class ReviewApplicationDto
     {
         [Required]
         public ApplicationStatus Status { get; set; }
-
+        
+        public string? ReviewNotes { get; set; }
     }
 }

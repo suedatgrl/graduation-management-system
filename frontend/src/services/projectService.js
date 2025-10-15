@@ -80,16 +80,15 @@ async getProjects(courseCode = null) {
     });
     return response.data;
   }
-
-  async reviewApplication(applicationId, status, reviewNotes) {
-    const response = await axios.post(`${API_URL}/applications/${applicationId}/review`, {
-      status,
-      reviewNotes
-    }, {
-      headers: this.getAuthHeaders()
-    });
-    return response.data;
-  }
+async reviewApplication(applicationId, status, ReviewNotes) {
+  const response = await axios.post(`${API_URL}/applications/${applicationId}/review`, {
+    status,
+    ReviewNotes // Bu parametrenin gönderildiğinden emin ol
+  }, {
+    headers: this.getAuthHeaders()
+  });
+  return response.data;
+}
 }
 
 export default new ProjectService();

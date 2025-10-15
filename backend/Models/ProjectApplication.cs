@@ -17,6 +17,8 @@ namespace GraduationProjectManagement.Models
         
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ReviewedAt { get; set; }
+
+        public string? ReviewNotes { get; set; }
         
         // Navigation properties
         public virtual User Student { get; set; } = null!;
