@@ -43,7 +43,7 @@ namespace GraduationProjectManagement.Controllers
             return Ok(setting);
         }
 
-        [HttpGet("dashboard")]
+        [HttpGet("dashboard-stats")]
         public async Task<IActionResult> GetDashboardStats()
         {
             var stats = await _adminService.GetDashboardStatsAsync();
@@ -91,7 +91,35 @@ namespace GraduationProjectManagement.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+
+         [HttpPut("users/{userId}/toggle-status")]
+         public async Task<IActionResult> ToggleUserStatus(int userId)
+        {
+        var user = await _adminService.ToggleUserStatusAsync(userId);
+        return Ok(user);
+        }
+
+        [HttpGet("users")]
+        public async Task<IActionResult> GetAllUsers()
+    {
+        var users = await _adminService.GetAllUsersAsync();
+        return Ok(users);
     }
+
+       [HttpDelete("users/{userId}")]
+       public async Task<IActionResult> DeleteUser(int userId)
+    {
+        await _adminService.DeleteUserAsync(userId);
+        return Ok(new { message = "Kullanıcı silindi." });
+    }
+
+
+
+
+    }
+
+
 
     public class UpdateSettingDto
     {

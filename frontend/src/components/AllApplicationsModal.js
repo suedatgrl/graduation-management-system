@@ -35,10 +35,10 @@ const AllApplicationsModal = ({ projects, onClose }) => {
     }
   };
 
-  const handleReviewApplication = async (applicationId, status, ReviewNotes = '') => {
+  const handleReviewApplication = async (applicationId, status, reviewNotes = '') => {
     try {
       setReviewLoading(true);
-      await projectService.reviewApplication(applicationId, status, ReviewNotes);
+      await projectService.reviewApplication(applicationId, status, reviewNotes);
       await fetchAllApplications(); // Refresh applications
       setSelectedApplication(null);
     } catch (error) {
@@ -241,13 +241,13 @@ const AllApplicationsModal = ({ projects, onClose }) => {
 
 // Review Modal Component
 const ReviewApplicationModal = ({ application, onSubmit, onClose, loading }) => {
-  const [ReviewNotes, setReviewNotes] = useState('');
+  const [reviewNotes, setReviewNotes] = useState('');
   const [decision, setDecision] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (decision !== null) {
-      onSubmit(application.id, decision, ReviewNotes.trim());
+      onSubmit(application.id, decision, reviewNotes.trim());
     }
   };
 
@@ -302,13 +302,13 @@ const ReviewApplicationModal = ({ application, onSubmit, onClose, loading }) => 
           </div>
 
           <div>
-            <label htmlFor="ReviewNotes" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="reviewNotes" className="block text-sm font-medium text-gray-700 mb-2">
               Değerlendirme Notu (İsteğe bağlı)
             </label>
             <textarea
-              id="ReviewNotes"
+              id="reviewNotes"
               rows={3}
-              value={ReviewNotes}
+              value={reviewNotes}
               onChange={(e) => setReviewNotes(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Kararınızla ilgili açıklama yazabilirsiniz..."

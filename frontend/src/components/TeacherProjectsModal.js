@@ -46,7 +46,7 @@ const TeacherProjectsModal = ({ teacher, onApply, onClose, appliedProjects, hasA
               <p className="text-sm text-gray-600">{teacher.email}</p>
               <div className="flex items-center space-x-4 mt-1">
                 <span className="text-sm text-blue-600">
-                  Toplam Kontenjan: {filteredCount|| 0}
+                  Toplam Kontenjan: {teacher.totalQuota|| 0}
                 </span>
         
                 <span className="text-sm text-orange-600">

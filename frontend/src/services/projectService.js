@@ -80,10 +80,10 @@ async getProjects(courseCode = null) {
     });
     return response.data;
   }
-async reviewApplication(applicationId, status, ReviewNotes) {
+async reviewApplication(applicationId, status, reviewNotes) {
   const response = await axios.post(`${API_URL}/applications/${applicationId}/review`, {
     status,
-    ReviewNotes // Bu parametrenin gönderildiğinden emin ol
+    reviewNotes // Bu parametrenin gönderildiğinden emin ol
   }, {
     headers: this.getAuthHeaders()
   });

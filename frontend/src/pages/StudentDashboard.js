@@ -178,8 +178,8 @@ const fetchData = async () => {
   };
 
   // Başvuru detayını göster
-  const handleApplicationClick = (application) => {
-    setSelectedApplication(application);
+  const handleApplicationClick = (applicationData) => {
+    setSelectedApplication(applicationData);
     setShowApplicationDetailModal(true);
   };
 
@@ -435,7 +435,7 @@ const getStatusText = (status) => {
                                 Aktif
                               </span>
                             )}
-                            {application.ReviewNotes && (
+                            {application.reviewNotes && (
                               <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
                                 Değerlendirme Notu Var
                               </span>
@@ -497,11 +497,11 @@ const getStatusText = (status) => {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600">
-                {filteredProjects.length  || 0}
+              <div className="text-xl font-bold text-blue-600">
+                Toplam Kontenjan: {teacher.totalQuota || 0}
               </div>
-              <div className="text-sm text-gray-600">Toplam Kontenjan: {filteredProjects.length || 0} </div>
-              <div className="text-xs text-gray-500">
+              
+              <div className="text-s text-gray-500">
                  Kalan Kontenjan: {teacher.availableQuota || 0}
               </div>
             </div>
@@ -564,7 +564,7 @@ const ApplicationDetailModal = ({ application, onClose }) => {
     }
     return status;
   };
-
+console.log("başvuru durumuuu",application);
   const getStatusIcon = (status) => {
     const normalizedStatus = normalizeStatus(status);
     switch (normalizedStatus) {
@@ -687,7 +687,7 @@ const ApplicationDetailModal = ({ application, onClose }) => {
           )}
          
           {/* Değerlendirme notu yoksa bilgilendirme */}
-          {!application.ReviewNotes && application.reviewedAt && (
+          {!application.reviewNotes && application.reviewedAt && (
             <div>
               <h4 className="text-sm font-medium text-gray-900 mb-2">Değerlendirme Notu</h4>
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
