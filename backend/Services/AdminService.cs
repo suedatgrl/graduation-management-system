@@ -70,6 +70,12 @@ namespace GraduationProjectManagement.Services
             var pendingApplications = await _context.ProjectApplications.CountAsync(pa => pa.Status == ApplicationStatus.Pending);
             var approvedApplications = await _context.ProjectApplications.CountAsync(pa => pa.Status == ApplicationStatus.Approved);
             var rejectedApplications = await _context.ProjectApplications.CountAsync(pa => pa.Status == ApplicationStatus.Rejected);
+            
+            // Course-based statistics
+            var blmStudents = await _context.Users.CountAsync(u => u.Role == UserRole.Student && u.CourseCode != null && u.CourseCode.StartsWith("BLM"));
+            var comStudents = await _context.Users.CountAsync(u => u.Role == UserRole.Student && u.CourseCode != null && u.CourseCode.StartsWith("COM"));
+            var blmProjects = await _context.Projects.CountAsync(p => p.CourseCode != null && p.CourseCode.StartsWith("BLM"));
+            var comProjects = await _context.Projects.CountAsync(p => p.CourseCode != null && p.CourseCode.StartsWith("COM"));
 
             return new Dictionary<string, object>
             {
@@ -82,7 +88,11 @@ namespace GraduationProjectManagement.Services
                 { "totalApplications", totalApplications },
                 { "pendingApplications", pendingApplications },
                 { "approvedApplications", approvedApplications },
-                { "rejectedApplications", rejectedApplications }
+                { "rejectedApplications", rejectedApplications },
+                { "blmStudents", blmStudents },
+                { "comStudents", comStudents },
+                { "blmProjects", blmProjects },
+                { "comProjects", comProjects }
             };
         }
 
@@ -446,6 +456,38 @@ namespace GraduationProjectManagement.Services
             await _context.SaveChangesAsync();
 
             return _mapper.Map<UserDto>(user);
+        }
+
+        public async Task<IEnumerable<UserDto>> GetStudentsAsync()
+        {
+            var students = await _context.Users
+                .Where(u => u.Role == UserRole.Student)
+                .OrderBy(u => u.FirstName)
+                .ThenBy(u => u.LastName)
+                .ToListAsync();
+
+            return students.Select(u => _mapper.Map<UserDto>(u)).ToList();
+        }
+
+        public async Task<IEnumerable<UserDto>> GetTeachersAsync()
+        {
+            var teachers = await _context.Users
+                .Where(u => u.Role == UserRole.Teacher)
+                .OrderBy(u => u.FirstName)
+                .ThenBy(u => u.LastName)
+                .ToListAsync();
+
+            return teachers.Select(u => _mapper.Map<UserDto>(u)).ToList();
+        }
+
+        public async Task<IEnumerable<ProjectDto>> GetProjectsAsync()
+        {
+            var projects = await _context.Projects
+                .Include(p => p.Teacher)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return projects.Select(p => _mapper.Map<ProjectDto>(p)).ToList();
         }
   
 

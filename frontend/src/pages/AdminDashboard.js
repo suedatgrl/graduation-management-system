@@ -3,6 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import adminService from '../services/adminService';
 import CreateUserModal from '../components/CreateUserModal';
 import ExcelUploadModal from '../components/ExcelUploadModal';
+import StudentsListModal from '../components/StudentsListModal';
+import TeachersListModal from '../components/TeachersListModal';
+import ProjectsListModal from '../components/ProjectsListModal';
 import { Users, BookOpen, Clock, Plus, Upload, Search, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -16,6 +19,12 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
+  const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [showTeachersModal, setShowTeachersModal] = useState(false);
+  const [showProjectsModal, setShowProjectsModal] = useState(false);
+  const [studentsData, setStudentsData] = useState([]);
+  const [teachersData, setTeachersData] = useState([]);
+  const [projectsData, setProjectsData] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -107,6 +116,45 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleOpenStudentsModal = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getStudents();
+      setStudentsData(data);
+      setShowStudentsModal(true);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenTeachersModal = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getTeachers();
+      setTeachersData(data);
+      setShowTeachersModal(true);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenProjectsModal = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getProjects();
+      setProjectsData(data);
+      setShowProjectsModal(true);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getRoleText = (role) => {
     switch (role) {
       case 1: return 'Öğrenci';
@@ -195,7 +243,10 @@ const AdminDashboard = () => {
             <div className="space-y-6">
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white">
+                <div 
+                  onClick={handleOpenStudentsModal}
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105"
+                >
                   <div className="flex items-center">
                     <Users className="h-8 w-8" />
                     <div className="ml-4">
@@ -205,7 +256,10 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
+                <div 
+                  onClick={handleOpenTeachersModal}
+                  className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105"
+                >
                   <div className="flex items-center">
                     <Users className="h-8 w-8" />
                     <div className="ml-4">
@@ -215,7 +269,10 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white">
+                <div 
+                  onClick={handleOpenProjectsModal}
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105"
+                >
                   <div className="flex items-center">
                     <BookOpen className="h-8 w-8" />
                     <div className="ml-4">
@@ -431,6 +488,27 @@ const AdminDashboard = () => {
         <ExcelUploadModal
           onSubmit={handleExcelUpload}
           onClose={() => setShowExcelModal(false)}
+        />
+      )}
+
+      {showStudentsModal && (
+        <StudentsListModal
+          students={studentsData}
+          onClose={() => setShowStudentsModal(false)}
+        />
+      )}
+
+      {showTeachersModal && (
+        <TeachersListModal
+          teachers={teachersData}
+          onClose={() => setShowTeachersModal(false)}
+        />
+      )}
+
+      {showProjectsModal && (
+        <ProjectsListModal
+          projects={projectsData}
+          onClose={() => setShowProjectsModal(false)}
         />
       )}
     </div>
