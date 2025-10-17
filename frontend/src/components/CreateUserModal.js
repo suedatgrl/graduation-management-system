@@ -125,7 +125,7 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
               E-mail
             </label>
             <input
-              type="email"
+              type="text"
               id="email"
               name="email"
               value={formData.email}

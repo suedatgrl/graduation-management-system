@@ -66,7 +66,8 @@ const AdminDashboard = () => {
     try {
       if (userData.role === 1) {
         await adminService.createStudent(userData);
-      } else {
+      } 
+      else if (userData.role==2) {
         await adminService.createTeacher(userData);
       }
       setShowCreateModal(false);
@@ -109,7 +110,7 @@ const AdminDashboard = () => {
   const getRoleText = (role) => {
     switch (role) {
       case 1: return 'Öğrenci';
-      case 2: return 'Öğretmen';
+      case 2: return 'Öğretim Üyesi';
       case 3: return 'Admin';
       default: return 'Bilinmeyen';
     }
@@ -208,7 +209,7 @@ const AdminDashboard = () => {
                   <div className="flex items-center">
                     <Users className="h-8 w-8" />
                     <div className="ml-4">
-                      <p className="text-green-100">Toplam Öğretmen</p>
+                      <p className="text-green-100">Toplam Öğretim Üyesi</p>
                       <p className="text-2xl font-bold">{stats.totalTeachers || 0}</p>
                     </div>
                   </div>
@@ -309,8 +310,7 @@ const AdminDashboard = () => {
                 >
                   <option value="all">Tüm Roller</option>
                   <option value="student">Öğrenci</option>
-                  <option value="teacher">Öğretmen</option>
-                  <option value="admin">Admin</option>
+                  <option value="teacher">Öğretim Üyesi</option>
                 </select>
               </div>
 
@@ -327,7 +327,7 @@ const AdminDashboard = () => {
                           Rol
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Kurs/Departman
+                          Ders Kodu
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Durum

@@ -109,7 +109,7 @@ const TeacherProjectsModal = ({ teacher, onApply, onClose, appliedProjects, hasA
                 Bu öğretim üyesinin {studentLanguage.toLowerCase()} kursları için şu anda aktif projesi bulunmamaktadır.
                 {totalProjects > 0 && (
                   <span className="block mt-1 text-xs">
-                    (Bu öğretmenin toplam {totalProjects} projesi var, ancak hiçbiri sizin kurs dilinizle uyumlu değil)
+                    (Bu öğretim üyesinin toplam {totalProjects} projesi var, ancak hiçbiri sizin kurs dilinizle uyumlu değil)
                   </span>
                 )}
               </p>
