@@ -22,5 +22,9 @@ namespace GraduationProjectManagement.Services
         
  
         Task<UserDto> ToggleUserStatusAsync(int userId);
+        
+        Task<IEnumerable<UserDto>> GetStudentsAsync();
+        Task<IEnumerable<UserDto>> GetTeachersAsync();
+        Task<IEnumerable<ProjectDto>> GetProjectsAsync();
     }
 }

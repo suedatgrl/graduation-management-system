@@ -63,6 +63,27 @@ class AdminService {
     });
     return response.data;
   }
+
+  async getStudents() {
+    const response = await axios.get(`${API_URL}/admin/students`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
+
+  async getTeachers() {
+    const response = await axios.get(`${API_URL}/admin/teachers`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
+
+  async getProjects() {
+    const response = await axios.get(`${API_URL}/admin/projects`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
 }
 
 export default new AdminService();

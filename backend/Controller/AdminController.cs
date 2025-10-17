@@ -114,6 +114,27 @@ namespace GraduationProjectManagement.Controllers
         return Ok(new { message = "Kullanıcı silindi." });
     }
 
+    [HttpGet("students")]
+    public async Task<IActionResult> GetStudents()
+    {
+        var students = await _adminService.GetStudentsAsync();
+        return Ok(students);
+    }
+
+    [HttpGet("teachers")]
+    public async Task<IActionResult> GetTeachers()
+    {
+        var teachers = await _adminService.GetTeachersAsync();
+        return Ok(teachers);
+    }
+
+    [HttpGet("projects")]
+    public async Task<IActionResult> GetProjects()
+    {
+        var projects = await _adminService.GetProjectsAsync();
+        return Ok(projects);
+    }
+
 
 
 
