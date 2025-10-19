@@ -63,6 +63,62 @@ class AdminService {
     });
     return response.data;
   }
+
+  async getStudents() {
+    const response = await axios.get(`${API_URL}/admin/students`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
+
+  async getTeachers() {
+    const response = await axios.get(`${API_URL}/admin/teachers`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
+
+  async getProjects() {
+    const response = await axios.get(`${API_URL}/admin/projects`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
+
+  async getSettings() {
+    const response = await axios.get(`${API_URL}/admin/settings`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
+
+  async updateDeadline(newDeadline) {
+    const response = await axios.put(
+      `${API_URL}/admin/settings/ApplicationDeadline`,
+      { value: newDeadline },
+      { headers: this.getAuthHeaders() }
+    );
+    return response.data;
+  }
+
+    async updateUser(userId, userData) {
+    const response = await axios.put(
+      `${API_URL}/admin/users/${userId}`,
+      userData,
+      { headers: this.getAuthHeaders() }
+    );
+    return response.data;
+  }
+
+
+  async getPendingApplications() {
+    const response = await axios.get(`${API_URL}/admin/pending-applications`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
 }
+
+
 
 export default new AdminService();

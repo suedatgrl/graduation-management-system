@@ -4,7 +4,7 @@ import projectService from '../services/projectService';
 import ApplicationModal from '../components/ApplicationModal';
 import TeacherProjectsModal from '../components/TeacherProjectsModal';
 import ProjectCard from '../components/ProjectCard';
-import { Search, Filter, BookOpen, Clock, CheckCircle, XCircle, Users, User, AlertCircle, X } from 'lucide-react';
+import { Search, Filter, BookOpen, Clock, CheckCircle, XCircle, Users, User, AlertCircle, X, Calendar } from 'lucide-react';  // Calendar eklendi
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -23,6 +23,10 @@ const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState('projects');
   const [hasActiveApplication, setHasActiveApplication] = useState(false);
   const [activeApplication, setActiveApplication] = useState(null);
+  
+  // YENİ STATE'LER
+  const [deadline, setDeadline] = useState(null);
+  const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
 
   // Determine course language from user's course code
   const courseLanguage = user?.courseCode?.startsWith('BLM') ? 'turkish' : 'english';
@@ -36,77 +40,82 @@ const StudentDashboard = () => {
     filterProjects();
   }, [projects, searchTerm]);
 
-useEffect(() => {
-  // Aktif başvuru kontrolü - hem string hem enum değerlerini kontrol et
-  const activeApp = myApplications.find(app => {
-    const status = app.status;
-    console.log('Application status:', status, 'type:', typeof status); // Debug
-    
-    // String formatı kontrolü
-    if (typeof status === 'string') {
-      return status === 'Pending' || status === 'Approved';
-    }
-    // Number formatı kontrolü
-    return status === 1 || status === 2;
-  });
-  
-  setHasActiveApplication(!!activeApp);
-  setActiveApplication(activeApp);
-}, [myApplications]);
-
-const checkActiveApplication = () => {
-  console.log('Checking active applications:', myApplications);
-  
-  const activeApp = myApplications.find(app => {
-    const status = app.status;
-    console.log(`App ${app.id}: status = "${status}" (${typeof status})`);
-    
-    const normalizedStatus = normalizeStatus(status);
-    // Pending (1) veya Approved (2) durumlarını kontrol et
-    return normalizedStatus === 1 || normalizedStatus === 2;
-  });
-  
-  console.log('Active application found:', activeApp);
-  setHasActiveApplication(!!activeApp);
-  setActiveApplication(activeApp);
-};
-
-
-const fetchData = async () => {
-  try {
-    setLoading(true);
-    const [projectsData, applicationsData] = await Promise.all([
-      projectService.getProjects(user?.courseCode),
-      projectService.getMyApplications()
-    ]);
-    
-    setProjects(projectsData);
-    setMyApplications(applicationsData);
-
-    // Teachers'ı ayrı çek
-    try {
-      const teachersResponse = await fetch('/api/teachers', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (teachersResponse.ok) {
-        const teachersData = await teachersResponse.json();
-        console.log('Teachers data received:', teachersData); // Debug
-        setTeachers(teachersData);
+  useEffect(() => {
+    // Aktif başvuru kontrolü
+    const activeApp = myApplications.find(app => {
+      const status = app.status;
+      if (typeof status === 'string') {
+        return status === 'Pending' || status === 'Approved';
       }
-    } catch (teacherError) {
-      console.warn('Teachers data could not be loaded:', teacherError);
-      setTeachers([]);
-    }
+      return status === 1 || status === 2;
+    });
     
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+    setHasActiveApplication(!!activeApp);
+    setActiveApplication(activeApp);
+  }, [myApplications]);
+
+  //  Son tarih kontrolü
+  useEffect(() => {
+    if (deadline) {
+      const deadlineDate = new Date(deadline);
+      const now = new Date();
+      setIsDeadlinePassed(now > deadlineDate);
+    }
+  }, [deadline]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [projectsData, applicationsData] = await Promise.all([
+        projectService.getProjects(user?.courseCode),
+        projectService.getMyApplications()
+      ]);
+      
+      setProjects(projectsData);
+      setMyApplications(applicationsData);
+
+      // YENİ: Son tarihi çek
+      try {
+        const settingsResponse = await fetch('/api/admin/settings', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (settingsResponse.ok) {
+          const settings = await settingsResponse.json();
+          const deadlineSetting = settings.find(s => s.key === 'ApplicationDeadline');
+          if (deadlineSetting) {
+            setDeadline(deadlineSetting.value);
+          }
+        }
+      } catch (settingsError) {
+        console.warn('Settings could not be loaded:', settingsError);
+      }
+
+      // Teachers'ı ayrı çek
+      try {
+        const teachersResponse = await fetch('/api/teachers', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (teachersResponse.ok) {
+          const teachersData = await teachersResponse.json();
+          setTeachers(teachersData);
+        }
+      } catch (teacherError) {
+        console.warn('Teachers data could not be loaded:', teacherError);
+        setTeachers([]);
+      }
+      
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filterProjects = () => {
     if (!searchTerm) {
@@ -128,6 +137,12 @@ const fetchData = async () => {
   };
 
   const handleApplyToProject = (project) => {
+  
+    if (isDeadlinePassed) {
+      alert('Başvuru süresi sona ermiştir. Artık proje başvurusu yapamazsınız.');
+      return;
+    }
+
     if (hasActiveApplication) {
       const statusText = activeApplication?.status === 'Pending' ? 'beklemede olan' : 'onaylanmış';
       alert(`Zaten ${statusText} bir başvurunuz bulunmaktadır. Yeni başvuru yapmak için mevcut başvurunuzun sonuçlanmasını bekleyiniz.\n\nAktif Başvuru: ${activeApplication?.projectTitle}`);
@@ -142,7 +157,7 @@ const fetchData = async () => {
       await projectService.applyToProject(applicationData.projectId);
       setShowApplicationModal(false);
       setSelectedProject(null);
-      await fetchData(); // Refresh data
+      await fetchData();
       alert('Başvurunuz başarıyla gönderildi!');
     } catch (error) {
       console.error('Error submitting application:', error);
@@ -177,46 +192,42 @@ const fetchData = async () => {
     }
   };
 
-  // Başvuru detayını göster
   const handleApplicationClick = (applicationData) => {
     setSelectedApplication(applicationData);
     setShowApplicationDetailModal(true);
   };
 
-const normalizeStatus = (status) => {
-  if (typeof status === 'string') {
-    switch (status.toLowerCase()) {
-      case 'pending': return 1;
-      case 'approved': return 2;
-      case 'rejected': return 3;
-      default: return status;
+  const normalizeStatus = (status) => {
+    if (typeof status === 'string') {
+      switch (status.toLowerCase()) {
+        case 'pending': return 1;
+        case 'approved': return 2;
+        case 'rejected': return 3;
+        default: return status;
+      }
     }
-  }
-  return status;
-};
+    return status;
+  };
 
+  const getStatusIcon = (status) => {
+    const normalizedStatus = normalizeStatus(status);
+    switch (normalizedStatus) {
+      case 1:
+      case 'Pending':
+        return <Clock className="h-5 w-5 text-yellow-500" />;
+      case 2:
+      case 'Approved':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 3:
+      case 'Rejected':
+        return <XCircle className="h-5 w-5 text-red-500" />;
+      default:
+        return <Clock className="h-5 w-5 text-gray-500" />;
+    }
+  };
 
-const getStatusIcon = (status) => {
-  const normalizedStatus = normalizeStatus(status);
-  switch (normalizedStatus) {
-    case 1:
-    case 'Pending':
-      return <Clock className="h-5 w-5 text-yellow-500" />;
-    case 2:
-    case 'Approved':
-      return <CheckCircle className="h-5 w-5 text-green-500" />;
-    case 3:
-    case 'Rejected':
-      return <XCircle className="h-5 w-5 text-red-500" />;
-    default:
-      return <Clock className="h-5 w-5 text-gray-500" />;
-  }
-};
-
-const getStatusColor = (status) => {
-  // String kontrolü
-  const normalizedStatus = normalizeStatus(status);
-
+  const getStatusColor = (status) => {
+    const normalizedStatus = normalizeStatus(status);
     switch (normalizedStatus) {
       case 2:
       case 'Approved':
@@ -227,15 +238,10 @@ const getStatusColor = (status) => {
       default:
         return 'bg-yellow-100 text-yellow-800';
     }
-  
+  };
 
-};
-
-const getStatusText = (status) => {
-
-  const normalizedStatus = normalizeStatus(status);
-  // String kontrolü
-
+  const getStatusText = (status) => {
+    const normalizedStatus = normalizeStatus(status);
     switch (normalizedStatus) {
       case 2:
       case 'Approved':
@@ -246,15 +252,12 @@ const getStatusText = (status) => {
       default:
         return 'Beklemede';
     }
-  
-
-};
+  };
 
   const isActiveStatus = (status) => {
     const normalizedStatus = normalizeStatus(status);
     return normalizedStatus === 1 || normalizedStatus === 2 || status === 'Pending' || status === 'Approved';
   };
-
 
   if (loading) {
     return (
@@ -265,49 +268,135 @@ const getStatusText = (status) => {
   }
 
 
-  
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Hoş geldiniz, {user?.firstName} {user?.lastName}
-            </h1>
-            <div className="flex items-center space-x-4 mt-2">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                coursePrefix === 'BLM' ? 'course-blm' : 'course-com'
-              }`}>
-                {user?.courseCode} - {courseLanguage === 'turkish' ? 'Türkçe' : 'English'} Projeleri
-              </span>
-              <span className="text-gray-600">{user?.email}</span>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-blue-600">{filteredProjects.length}</div>
-            <div className="text-sm text-gray-600">Mevcut Proje</div>
+return (
+  <div className="space-y-6">
+    {/* Header  */}
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Hoş geldiniz, {user?.firstName} {user?.lastName}
+          </h1>
+          <div className="flex items-center space-x-4 mt-2">
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+              coursePrefix === 'BLM' ? 'course-blm' : 'course-com'
+            }`}>
+              {user?.courseCode} - {courseLanguage === 'turkish' ? 'Türkçe' : 'English'} Projeleri
+            </span>
+            <span className="text-gray-600">{user?.email}</span>
           </div>
         </div>
+        <div className="text-right">
+          <div className="text-3xl font-bold text-blue-600">{filteredProjects.length}</div>
+          <div className="text-sm text-gray-600">Mevcut Proje</div>
+        </div>
       </div>
+    </div>
 
-      {/* Active Application Warning */}
-      {hasActiveApplication && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+    {/* Deadline ve Başvuru Durumu Grid */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Deadline Box - Her zaman görünsün */}
+      {deadline ? (
+        <div className={`border rounded-lg p-4 ${
+          isDeadlinePassed 
+            ? 'bg-red-50 border-red-200' 
+            : 'bg-green-50 border-green-200'
+        }`}>
           <div className="flex items-start space-x-3">
-            <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-medium text-yellow-800">
-                Aktif Başvuru Bulunuyor
+            <Calendar className={`h-5 w-5 mt-0.5 flex-shrink-0 ${
+              isDeadlinePassed ? 'text-red-600' : 'text-green-600'
+            }`} />
+            <div className="flex-1">
+              <h3 className={`text-sm font-medium ${
+                isDeadlinePassed ? 'text-red-800' : 'text-green-800'
+              }`}>
+                {isDeadlinePassed ? '⚠️ Başvuru Süresi Sona Erdi' : '✅ Başvuru Süresi Aktif'}
               </h3>
-              <p className="text-sm text-yellow-700 mt-1">
-                <strong>{activeApplication?.projectTitle}</strong> projesine {getStatusText(activeApplication?.status).toLowerCase()} başvurunuz bulunmaktadır. 
-                Bu başvuru sonuçlanana kadar yeni başvuru yapamazsınız.
+              <p className={`text-sm mt-1 ${
+                isDeadlinePassed ? 'text-red-700' : 'text-green-700'
+              }`}>
+                <strong>Son Başvuru Tarihi:</strong>
+                <br />
+                {new Date(deadline).toLocaleDateString('tr-TR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+              {isDeadlinePassed ? (
+                <p className="text-sm text-red-700 mt-2 font-medium">
+                  🚫 Proje seçme süresi geçmiştir. Yeni başvuru yapamazsınız.
+                </p>
+              ) : (
+                <p className="text-sm text-green-700 mt-2">
+                  ✓ Henüz başvuru yapabilirsiniz
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-gray-700">
+                Son Başvuru Tarihi Belirlenmedi
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Admin tarafından henüz bir son başvuru tarihi belirlenmemiştir.
               </p>
             </div>
           </div>
         </div>
       )}
+
+      {/* Active Application veya Bilgilendirme */}
+      {hasActiveApplication ? (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-yellow-800">
+                Aktif Başvuru Bulunuyor
+              </h3>
+              <p className="text-sm text-yellow-700 mt-1">
+                <strong>{activeApplication?.projectTitle}</strong> projesine {getStatusText(activeApplication?.status).toLowerCase()} başvurunuz bulunmaktadır.
+              </p>
+              <p className="text-sm text-yellow-700 mt-2">
+                Bu başvuru sonuçlanana kadar yeni başvuru yapamazsınız.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <BookOpen className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-blue-800">
+                Proje Başvurusu
+              </h3>
+              <p className="text-sm text-blue-700 mt-1">
+                {isDeadlinePassed 
+                  ? 'Başvuru süresi sona erdiği için yeni başvuru yapamazsınız.'
+                  : 'Aşağıdaki projeler arasından seçim yaparak başvurunuzu gerçekleştirebilirsiniz.'
+                }
+              </p>
+              {!isDeadlinePassed && (
+                <div className="mt-2 pt-2 border-t border-blue-200">
+                  <p className="text-xs text-blue-600">
+                    💡 İpucu: Proje detaylarını inceleyip size en uygun projeyi seçin
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
 
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow">
@@ -337,7 +426,6 @@ const getStatusText = (status) => {
               <div className="flex items-center space-x-2">
                 <Clock className="h-5 w-5" />
                 <span>Başvuru Durumum</span>
-               
               </div>
             </button>
             <button
@@ -388,6 +476,7 @@ const getStatusText = (status) => {
                       userRole="student"
                       appliedProjects={myApplications.map(app => app.projectId)}
                       hasActiveApplication={hasActiveApplication}
+                      isDeadlinePassed={isDeadlinePassed}  
                     />
                   ))}
                 </div>
@@ -473,50 +562,47 @@ const getStatusText = (status) => {
             </div>
           )}
 
-
           {activeTab === 'teachers' && (
-  <div className="space-y-4">
-    {teachers.length > 0 ? (
-      teachers.map((teacher) => (
-        <div 
-          key={teacher.id} 
-          className="bg-gray-50 rounded-lg p-6 cursor-pointer hover:bg-gray-100 transition-colors"
-          onClick={() => handleTeacherClick(teacher)}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex-shrink-0">
-                <User className="h-10 w-10 text-gray-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  {teacher.firstName} {teacher.lastName}
-                </h3>
-                <p className="text-sm text-gray-600">{teacher.email}</p>
-             
-              </div>
+            <div className="space-y-4">
+              {teachers.length > 0 ? (
+                teachers.map((teacher) => (
+                  <div 
+                    key={teacher.id} 
+                    className="bg-gray-50 rounded-lg p-6 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleTeacherClick(teacher)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <User className="h-10 w-10 text-gray-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900">
+                            {teacher.firstName} {teacher.lastName}
+                          </h3>
+                          <p className="text-sm text-gray-600">{teacher.email}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-blue-600">
+                          Toplam Kontenjan: {teacher.totalQuota || 0}
+                        </div>
+                        <div className="text-s text-gray-500">
+                          Kalan Kontenjan: {teacher.availableQuota || 0}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <Users className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-4 text-lg font-medium text-gray-900">Öğretim üyesi bulunamadı</h3>
+                  <p className="mt-2 text-gray-500">Henüz sistemde kayıtlı öğretim üyesi bulunmuyor.</p>
+                </div>
+              )}
             </div>
-            <div className="text-right">
-              <div className="text-xl font-bold text-blue-600">
-                Toplam Kontenjan: {teacher.totalQuota || 0}
-              </div>
-              
-              <div className="text-s text-gray-500">
-                 Kalan Kontenjan: {teacher.availableQuota || 0}
-              </div>
-            </div>
-          </div>
-        </div>
-      ))
-    ) : (
-      <div className="text-center py-12">
-        <Users className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-4 text-lg font-medium text-gray-900">Öğretim üyesi bulunamadı</h3>
-        <p className="mt-2 text-gray-500">Henüz sistemde kayıtlı öğretim üyesi bulunmuyor.</p>
-      </div>
-    )}
-  </div>
-)}
+          )}
         </div>
       </div>
 
@@ -537,6 +623,7 @@ const getStatusText = (status) => {
           onClose={() => setShowTeacherProjectsModal(false)}
           appliedProjects={myApplications.map(app => app.projectId)}
           hasActiveApplication={hasActiveApplication}
+          isDeadlinePassed={isDeadlinePassed}
         />
       )}
 
@@ -551,7 +638,7 @@ const getStatusText = (status) => {
   );
 };
 
-// Başvuru Detay Modal Bileşeni
+// ApplicationDetailModal bileşeni aynı kalıyor (değişiklik yok)
 const ApplicationDetailModal = ({ application, onClose }) => {
   const normalizeStatus = (status) => {
     if (typeof status === 'string') {
@@ -564,7 +651,7 @@ const ApplicationDetailModal = ({ application, onClose }) => {
     }
     return status;
   };
-console.log("başvuru durumuuu",application);
+
   const getStatusIcon = (status) => {
     const normalizedStatus = normalizeStatus(status);
     switch (normalizedStatus) {
@@ -630,13 +717,11 @@ console.log("başvuru durumuuu",application);
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Proje Bilgileri */}
           <div>
             <h4 className="text-sm font-medium text-gray-900 mb-2">Proje</h4>
             <p className="text-gray-600">{application.projectTitle}</p>
           </div>
 
-          {/* Durum */}
           <div>
             <h4 className="text-sm font-medium text-gray-900 mb-2">Durum</h4>
             <div className="flex items-center space-x-2">
@@ -647,7 +732,6 @@ console.log("başvuru durumuuu",application);
             </div>
           </div>
 
-          {/* Tarihler */}
           <div>
             <h4 className="text-sm font-medium text-gray-900 mb-2">Başvuru Tarihi</h4>
             <p className="text-gray-600">
@@ -676,7 +760,6 @@ console.log("başvuru durumuuu",application);
             </div>
           )}
 
-          {/* Değerlendirme Notu */}
           {application.reviewNotes && (
             <div>
               <h4 className="text-sm font-medium text-gray-900 mb-2">Değerlendirme Notu</h4>
@@ -685,8 +768,7 @@ console.log("başvuru durumuuu",application);
               </div>
             </div>
           )}
-         
-          {/* Değerlendirme notu yoksa bilgilendirme */}
+          
           {!application.reviewNotes && application.reviewedAt && (
             <div>
               <h4 className="text-sm font-medium text-gray-900 mb-2">Değerlendirme Notu</h4>
@@ -696,7 +778,6 @@ console.log("başvuru durumuuu",application);
             </div>
           )}
 
-          {/* Henüz değerlendirilmemişse */}
           {!application.reviewedAt && (
             <div>
               <h4 className="text-sm font-medium text-gray-900 mb-2">Değerlendirme Durumu</h4>

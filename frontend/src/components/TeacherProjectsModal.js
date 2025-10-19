@@ -1,94 +1,78 @@
-import React, { useMemo } from 'react';
-import { X, Calendar, Users, User, AlertCircle, Filter } from 'lucide-react';
+import React from 'react';
+import { X, User, Mail, BookOpen } from 'lucide-react';
 import ProjectCard from './ProjectCard';
-import { useAuth } from '../context/AuthContext';
 
-const TeacherProjectsModal = ({ teacher, onApply, onClose, appliedProjects, hasActiveApplication }) => {
-  const { user } = useAuth();
-  
-  // Öğrencinin kurs diline göre projeleri filtrele
-  const filteredProjects = useMemo(() => {
-    if (!teacher.projects || !user?.courseCode) {
-      return teacher.projects || [];
-    }
-
-    const studentCoursePrefix = user.courseCode.substring(0, 3); // BLM veya COM
-    
-    return teacher.projects.filter(project => {
-      const projectCoursePrefix = project.courseCode?.substring(0, 3);
-      return projectCoursePrefix === studentCoursePrefix;
-    });
-  }, [teacher.projects, user?.courseCode]);
-
-  const getCourseLanguageText = (courseCode) => {
-    if (courseCode?.startsWith('BLM')) {
-      return 'Türkçe';
-    } else if (courseCode?.startsWith('COM')) {
-      return 'English';
-    }
-    return 'Bilinmeyen';
-  };
-
-  const studentLanguage = getCourseLanguageText(user?.courseCode);
-  const totalProjects = teacher.projects?.length || 0;
-  const filteredCount = filteredProjects.length;
-
+const TeacherProjectsModal = ({ 
+  teacher, 
+  onApply, 
+  onClose, 
+  appliedProjects = [], 
+  hasActiveApplication = false,
+  isDeadlinePassed = false
+}) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600">
           <div className="flex items-center space-x-4">
-            <User className="h-10 w-10 text-gray-400" />
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
+            <div className="bg-white rounded-full p-3">
+              <User className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="text-white">
+              <h3 className="text-2xl font-bold">
                 {teacher.firstName} {teacher.lastName}
-              </h2>
-              <p className="text-sm text-gray-600">{teacher.email}</p>
-              <div className="flex items-center space-x-4 mt-1">
-                <span className="text-sm text-blue-600">
-                  Toplam Kontenjan: {teacher.totalQuota|| 0}
-                </span>
-        
-                <span className="text-sm text-orange-600">
-                  Kalan Kontenjan: {teacher.availableQuota}
-                </span>
+              </h3>
+              <div className="flex items-center space-x-2 mt-1">
+                <Mail className="h-4 w-4" />
+                <p className="text-blue-100">{teacher.email}</p>
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-white hover:text-blue-100 transition-colors"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
-
-        {/* Active Application Warning */}
-        {hasActiveApplication && (
-          <div className="mx-6 mt-4 bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-medium text-orange-800">
-                  Uyarı
-                </h3>
-                <p className="text-sm text-orange-700 mt-1">
-                  Aktif başvurunuz bulunduğu için bu projelere başvuru yapamazsınız.
-                </p>
+        {/* Teacher Stats */}
+        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {teacher.totalQuota || 0}
               </div>
+              <div className="text-sm text-gray-600">Toplam Kontenjan</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {teacher.availableQuota || 0}
+              </div>
+              <div className="text-sm text-gray-600">Kalan Kontenjan</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {teacher.projects?.length || 0}
+              </div>
+              <div className="text-sm text-gray-600">Toplam Proje</div>
             </div>
           </div>
-        )}
+        </div>
 
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-             Aktif Projeler ({filteredCount})
-          </h3>
-          
-          {filteredCount > 0 ? (
+        {/* Projects Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {teacher.projects && teacher.projects.length > 0 ? (
             <div className="space-y-4">
-              {filteredProjects.map((project) => (
+              <div className="flex items-center space-x-2 mb-4">
+                <BookOpen className="h-5 w-5 text-gray-600" />
+                <h4 className="text-lg font-semibold text-gray-900">
+                  Mevcut Projeler ({teacher.projects.length})
+                </h4>
+              </div>
+              
+              {teacher.projects.map((project) => (
                 <ProjectCard
                   key={project.id}
                   project={project}
@@ -96,31 +80,28 @@ const TeacherProjectsModal = ({ teacher, onApply, onClose, appliedProjects, hasA
                   userRole="student"
                   appliedProjects={appliedProjects}
                   hasActiveApplication={hasActiveApplication}
+                  isDeadlinePassed={isDeadlinePassed}
                 />
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <Users className="mx-auto h-12 w-12 text-gray-400" />
-              <h4 className="mt-4 text-lg font-medium text-gray-900">
-                {studentLanguage} kursları için aktif proje bulunmuyor
-              </h4>
+            <div className="text-center py-16">
+              <BookOpen className="mx-auto h-16 w-16 text-gray-400" />
+              <h3 className="mt-4 text-xl font-medium text-gray-900">
+                Henüz Proje Yok
+              </h3>
               <p className="mt-2 text-gray-500">
-                Bu öğretim üyesinin {studentLanguage.toLowerCase()} kursları için şu anda aktif projesi bulunmamaktadır.
-                {totalProjects > 0 && (
-                  <span className="block mt-1 text-xs">
-                    (Bu öğretim üyesinin toplam {totalProjects} projesi var, ancak hiçbiri sizin kurs dilinizle uyumlu değil)
-                  </span>
-                )}
+                Bu öğretim üyesinin henüz aktif projesi bulunmuyor.
               </p>
             </div>
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        {/* Footer */}
+        <div className="flex justify-end p-6 border-t border-gray-200 bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
           >
             Kapat
           </button>

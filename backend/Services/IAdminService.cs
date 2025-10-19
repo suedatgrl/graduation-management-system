@@ -14,13 +14,17 @@ namespace GraduationProjectManagement.Services
         Task<UserDto> AddTeacherAsync(CreateTeacherDto teacherDto);
         Task<IEnumerable<UserDto>> BulkUploadUsersAsync(IFormFile excelFile, UserRole userType);
   
-     
+        Task<UserDto> UpdateUserAsync(int userId, UpdateUserDto dto);
         Task<IEnumerable<UserDto>> GetAllUsersAsync();
         
 
         Task<bool> DeleteUserAsync(int userId);
-        
- 
+
+
         Task<UserDto> ToggleUserStatusAsync(int userId);
+
+        Task<IEnumerable<UserDto>> GetStudentsAsync();
+        Task<IEnumerable<UserDto>> GetTeachersAsync();
+        Task<IEnumerable<ProjectDto>> GetProjectsAsync();
     }
 }

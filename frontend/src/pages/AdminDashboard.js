@@ -3,8 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import adminService from '../services/adminService';
 import CreateUserModal from '../components/CreateUserModal';
 import ExcelUploadModal from '../components/ExcelUploadModal';
-import { Users, BookOpen, Clock, Plus, Upload, Search, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
-
+import StudentsListModal from '../components/StudentsListModal';
+import TeachersListModal from '../components/TeachersListModal';
+import EditUserModal from '../components/EditUserModal';
+import PendingApplicationsModal from '../components/PendingApplicationsModal';  
+import DeadlineUpdateModal from '../components/DeadlineUpdateModal';  
+import ProjectsListModal from '../components/ProjectsListModal';
+import { Users, BookOpen, Clock, Plus, Upload, Search, Trash2, ToggleLeft, ToggleRight, Calendar, Edit } from 'lucide-react';
 const AdminDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({});
@@ -16,6 +21,19 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
+  const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [showTeachersModal, setShowTeachersModal] = useState(false);
+  const [showProjectsModal, setShowProjectsModal] = useState(false);
+  const [studentsData, setStudentsData] = useState([]);
+  const [teachersData, setTeachersData] = useState([]);
+  const [projectsData, setProjectsData] = useState([]);
+
+  const [showPendingApplicationsModal, setShowPendingApplicationsModal] = useState(false);
+  const [showDeadlineModal, setShowDeadlineModal] = useState(false);
+  const [pendingApplications, setPendingApplications] = useState([]);
+  const [deadline, setDeadline] = useState(null);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);  // YENİ
+const [selectedUser, setSelectedUser] = useState(null); 
 
   useEffect(() => {
     fetchData();
@@ -28,13 +46,19 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [statsData, usersData] = await Promise.all([
+      const [statsData, usersData, settingsData] = await Promise.all([
         adminService.getDashboardStats(),
-        adminService.getAllUsers()
+        adminService.getAllUsers(),
+        adminService.getSettings() 
       ]);
       
       setStats(statsData);
       setUsers(usersData);
+
+      const deadlineSetting = settingsData.find(s => s.key === 'ApplicationDeadline');
+      if (deadlineSetting) {
+        setDeadline(deadlineSetting.value);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -60,6 +84,31 @@ const AdminDashboard = () => {
     }
 
     setFilteredUsers(filtered);
+  };
+
+
+   const handlePendingApplicationsClick = async () => {
+    try {
+      const applications = await adminService.getPendingApplications();
+      setPendingApplications(applications);
+      setShowPendingApplicationsModal(true);
+    } catch (error) {
+      console.error('Error fetching pending applications:', error);
+      alert('Bekleyen başvurular yüklenirken bir hata oluştu.');
+    }
+  };
+
+
+  const handleDeadlineUpdate = async (newDeadline) => {
+    try {
+      await adminService.updateDeadline(newDeadline);
+      setDeadline(newDeadline);
+      alert('Son tarih başarıyla güncellendi!');
+      await fetchData();
+    } catch (error) {
+      console.error('Error updating deadline:', error);
+      throw error;
+    }
   };
 
   const handleCreateUser = async (userData) => {
@@ -107,6 +156,45 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleOpenStudentsModal = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getStudents();
+      setStudentsData(data);
+      setShowStudentsModal(true);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenTeachersModal = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getTeachers();
+      setTeachersData(data);
+      setShowTeachersModal(true);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenProjectsModal = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getProjects();
+      setProjectsData(data);
+      setShowProjectsModal(true);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getRoleText = (role) => {
     switch (role) {
       case 1: return 'Öğrenci';
@@ -124,6 +212,19 @@ const AdminDashboard = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const handleUpdateUser = async (userId, userData) => {
+  try {
+    await adminService.updateUser(userId, userData);
+    setShowEditUserModal(false);
+    setSelectedUser(null);
+    await fetchData();
+    alert('Kullanıcı bilgileri başarıyla güncellendi!');
+  } catch (error) {
+    console.error('Error updating user:', error);
+    throw error;
+  }
+};
 
   if (loading) {
     return (
@@ -193,9 +294,42 @@ const AdminDashboard = () => {
         <div className="p-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="h-6 w-6 text-blue-600" />
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-900">
+                        Proje Başvuru Son Tarihi
+                      </h3>
+                      <p className="text-lg font-bold text-blue-700 mt-1">
+                        {deadline
+                          ? new Date(deadline).toLocaleDateString('tr-TR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : 'Belirlenmemiş'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowDeadlineModal(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    <span>Son Tarihi Değiştir</span>
+                  </button>
+                </div>
+              </div>
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white">
+                <div 
+                  onClick={handleOpenStudentsModal}
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105"
+                >
                   <div className="flex items-center">
                     <Users className="h-8 w-8" />
                     <div className="ml-4">
@@ -205,7 +339,10 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
+                <div 
+                  onClick={handleOpenTeachersModal}
+                  className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105"
+                >
                   <div className="flex items-center">
                     <Users className="h-8 w-8" />
                     <div className="ml-4">
@@ -215,7 +352,10 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white">
+                <div 
+                  onClick={handleOpenProjectsModal}
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105"
+                >
                   <div className="flex items-center">
                     <BookOpen className="h-8 w-8" />
                     <div className="ml-4">
@@ -225,7 +365,10 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow p-6 text-white">
+               <div 
+                  onClick={handlePendingApplicationsClick}
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-orange-600 hover:to-orange-700 transition-all"
+                >
                   <div className="flex items-center">
                     <Clock className="h-8 w-8" />
                     <div className="ml-4">
@@ -236,15 +379,16 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+
               {/* Course Distribution */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white border rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Kurs Dağılımı</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Öğrenci Dağılımı</h3>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                        <span className="text-sm text-gray-700">BLM (Türkçe) Kursları</span>
+                        <span className="text-sm text-gray-700">BLM (Türkçe) </span>
                       </div>
                       <span className="text-sm font-medium text-gray-900">
                         {stats.blmStudents || 0} öğrenci
@@ -253,7 +397,7 @@ const AdminDashboard = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="w-4 h-4 bg-green-500 rounded"></div>
-                        <span className="text-sm text-gray-700">COM (English) Kursları</span>
+                        <span className="text-sm text-gray-700">COM (English) </span>
                       </div>
                       <span className="text-sm font-medium text-gray-900">
                         {stats.comStudents || 0} öğrenci
@@ -265,12 +409,7 @@ const AdminDashboard = () => {
                 <div className="bg-white border rounded-lg p-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Proje İstatistikleri</h3>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">Aktif Projeler</span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {stats.activeProjects || 0}
-                      </span>
-                    </div>
+                  
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-700">Türkçe Projeler</span>
                       <span className="text-sm font-medium text-gray-900">
@@ -329,12 +468,10 @@ const AdminDashboard = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Ders Kodu
                         </th>
+                       
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Durum
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          İşlemler
-                        </th>
+      İşlemler 
+    </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -368,24 +505,20 @@ const AdminDashboard = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {user.courseCode || user.department || '-'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                              {user.isActive ? 'Aktif' : 'Pasif'}
-                            </span>
-                          </td>
+                         
+
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <button
-                              onClick={() => handleToggleUserStatus(user.id)}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              {user.isActive ? (
-                                <ToggleRight className="h-5 w-5" />
-                              ) : (
-                                <ToggleLeft className="h-5 w-5" />
-                              )}
-                            </button>
+                            
+                              <button
+    onClick={() => {
+      setSelectedUser(user);
+      setShowEditUserModal(true);
+    }}
+    className="text-blue-600 hover:text-blue-900"
+    title="Düzenle"
+  >
+    <Edit className="h-5 w-5" />
+  </button>
                             <button
                               onClick={() => handleDeleteUser(user.id)}
                               className="text-red-600 hover:text-red-900"
@@ -433,7 +566,57 @@ const AdminDashboard = () => {
           onClose={() => setShowExcelModal(false)}
         />
       )}
+
+      {showStudentsModal && (
+        <StudentsListModal
+          students={studentsData}
+          onClose={() => setShowStudentsModal(false)}
+        />
+      )}
+
+      {showTeachersModal && (
+        <TeachersListModal
+          teachers={teachersData}
+          onClose={() => setShowTeachersModal(false)}
+        />
+      )}
+
+      {showProjectsModal && (
+        <ProjectsListModal
+          projects={projectsData}
+          onClose={() => setShowProjectsModal(false)}
+        />
+      )}
+
+         {showPendingApplicationsModal && (
+        <PendingApplicationsModal
+          applications={pendingApplications}
+          onClose={() => setShowPendingApplicationsModal(false)}
+        />
+      )}
+
+      {showDeadlineModal && (
+        <DeadlineUpdateModal
+          currentDeadline={deadline}
+          onUpdate={handleDeadlineUpdate}
+          onClose={() => setShowDeadlineModal(false)}
+        />
+      )}
+
+      {showEditUserModal && selectedUser && (
+  <EditUserModal
+    user={selectedUser}
+    onSubmit={handleUpdateUser}
+    onClose={() => {
+      setShowEditUserModal(false);
+      setSelectedUser(null);
+    }}
+  />
+)}
+
     </div>
+
+    
   );
 };
 

@@ -70,6 +70,12 @@ namespace GraduationProjectManagement.Services
             var pendingApplications = await _context.ProjectApplications.CountAsync(pa => pa.Status == ApplicationStatus.Pending);
             var approvedApplications = await _context.ProjectApplications.CountAsync(pa => pa.Status == ApplicationStatus.Approved);
             var rejectedApplications = await _context.ProjectApplications.CountAsync(pa => pa.Status == ApplicationStatus.Rejected);
+            
+            // Course-based statistics
+            var blmStudents = await _context.Users.CountAsync(u => u.Role == UserRole.Student && u.CourseCode != null && u.CourseCode.StartsWith("BLM"));
+            var comStudents = await _context.Users.CountAsync(u => u.Role == UserRole.Student && u.CourseCode != null && u.CourseCode.StartsWith("COM"));
+            var blmProjects = await _context.Projects.CountAsync(p => p.CourseCode != null && p.CourseCode.StartsWith("BLM"));
+            var comProjects = await _context.Projects.CountAsync(p => p.CourseCode != null && p.CourseCode.StartsWith("COM"));
 
             return new Dictionary<string, object>
             {
@@ -82,7 +88,11 @@ namespace GraduationProjectManagement.Services
                 { "totalApplications", totalApplications },
                 { "pendingApplications", pendingApplications },
                 { "approvedApplications", approvedApplications },
-                { "rejectedApplications", rejectedApplications }
+                { "rejectedApplications", rejectedApplications },
+                { "blmStudents", blmStudents },
+                { "comStudents", comStudents },
+                { "blmProjects", blmProjects },
+                { "comProjects", comProjects }
             };
         }
 
@@ -447,6 +457,114 @@ namespace GraduationProjectManagement.Services
 
             return _mapper.Map<UserDto>(user);
         }
+
+        public async Task<IEnumerable<UserDto>> GetStudentsAsync()
+        {
+            var students = await _context.Users
+                .Where(u => u.Role == UserRole.Student)
+                .OrderBy(u => u.FirstName)
+                .ThenBy(u => u.LastName)
+                .ToListAsync();
+
+            return students.Select(u => _mapper.Map<UserDto>(u)).ToList();
+        }
+
+        public async Task<IEnumerable<UserDto>> GetTeachersAsync()
+        {
+            var teachers = await _context.Users
+                .Where(u => u.Role == UserRole.Teacher)
+                .OrderBy(u => u.FirstName)
+                .ThenBy(u => u.LastName)
+                .ToListAsync();
+
+            return teachers.Select(u => _mapper.Map<UserDto>(u)).ToList();
+        }
+
+        public async Task<IEnumerable<ProjectDto>> GetProjectsAsync()
+        {
+            var projects = await _context.Projects
+                .Include(p => p.Teacher)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return projects.Select(p => _mapper.Map<ProjectDto>(p)).ToList();
+        }
+
+        public async Task<UserDto> UpdateUserAsync(int userId, UpdateUserDto dto)
+{
+    var user = await _context.Users.FindAsync(userId);
+    
+    if (user == null)
+    {
+        throw new InvalidOperationException("Kullanıcı bulunamadı.");
+    }
+
+    if (user.Role == UserRole.Admin)
+    {
+        throw new InvalidOperationException("Admin kullanıcıları düzenlenemez.");
+    }
+
+    // Email kontrolü
+    if (user.Email != dto.Email)
+    {
+        var emailExists = await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != userId);
+        if (emailExists)
+        {
+            throw new InvalidOperationException("Bu e-posta adresi başka bir kullanıcı tarafından kullanılıyor.");
+        }
+        user.Email = dto.Email;
+    }
+
+    // Temel bilgileri güncelle
+    user.FirstName = dto.FirstName;
+    user.LastName = dto.LastName;
+
+    // Öğrenci ise
+    if (user.Role == UserRole.Student)
+    {
+        if (!string.IsNullOrEmpty(dto.StudentNumber) && user.StudentNumber != dto.StudentNumber)
+        {
+            var numberExists = await _context.Users.AnyAsync(u => u.StudentNumber == dto.StudentNumber && u.Id != userId);
+            if (numberExists)
+            {
+                throw new InvalidOperationException("Bu öğrenci numarası başka bir kullanıcı tarafından kullanılıyor.");
+            }
+            user.StudentNumber = dto.StudentNumber;
+        }
+        
+        if (!string.IsNullOrEmpty(dto.CourseCode))
+        {
+            user.CourseCode = dto.CourseCode;
+        }
+    }
+
+    // Öğretmen ise
+    if (user.Role == UserRole.Teacher)
+    {
+        if (dto.TotalQuota.HasValue && dto.TotalQuota.Value >= 1 && dto.TotalQuota.Value <= 50)
+        {
+            user.TotalQuota = dto.TotalQuota.Value;
+        }
+    }
+
+    // TC Kimlik No güncellemesi
+    if (!string.IsNullOrEmpty(dto.TcIdentityNumber) && dto.TcIdentityNumber.Length == 11)
+    {
+        if (user.TcIdentityNumber != dto.TcIdentityNumber)
+        {
+            var tcExists = await _context.Users.AnyAsync(u => u.TcIdentityNumber == dto.TcIdentityNumber && u.Id != userId);
+            if (tcExists)
+            {
+                throw new InvalidOperationException("Bu TC kimlik numarası başka bir kullanıcı tarafından kullanılıyor.");
+            }
+            user.TcIdentityNumber = dto.TcIdentityNumber;
+        }
+    }
+
+    await _context.SaveChangesAsync();
+    
+    return _mapper.Map<UserDto>(user);
+}
   
 
 
