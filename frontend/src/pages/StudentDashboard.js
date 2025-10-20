@@ -331,7 +331,7 @@ return (
                 </p>
               ) : (
                 <p className="text-sm text-green-700 mt-2">
-                  ✓ Henüz başvuru yapabilirsiniz
+                  ✓ Başvuru yapabilirsiniz
                 </p>
               )}
             </div>
@@ -363,7 +363,7 @@ return (
                 Aktif Başvuru Bulunuyor
               </h3>
               <p className="text-sm text-yellow-700 mt-1">
-                <strong>{activeApplication?.projectTitle}</strong> projesine {getStatusText(activeApplication?.status).toLowerCase()} başvurunuz bulunmaktadır.
+                <strong>{activeApplication?.projectTitle}</strong> projesine başvurunuz bulunmaktadır.
               </p>
               <p className="text-sm text-yellow-700 mt-2">
                 Bu başvuru sonuçlanana kadar yeni başvuru yapamazsınız.
@@ -519,11 +519,7 @@ return (
                             <h3 className="text-lg font-medium text-gray-900">
                               {application.projectTitle}
                             </h3>
-                            {isActive && (
-                              <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
-                                Aktif
-                              </span>
-                            )}
+                        
                             {application.reviewNotes && (
                               <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
                                 Değerlendirme Notu Var

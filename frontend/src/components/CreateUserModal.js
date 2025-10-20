@@ -156,13 +156,13 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
           {formData.role === 1 && (
             <>
               <div>
-                <label htmlFor="schoolNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="studentNumber" className="block text-sm font-medium text-gray-700 mb-2">
                   Okul Numarası
                 </label>
                 <input
                   type="text"
-                  id="schoolNumber"
-                  name="schoolNumber"
+                  id="studentNumber"
+                  name="studentNumber"
                   value={formData.studentNumber}
                   onChange={handleChange}
                   required

@@ -31,7 +31,7 @@ class AuthService {
 
   async changePassword(currentPassword, newPassword) {
     const token = localStorage.getItem('token');
-    const response = await axios.post(`${API_URL}/users/change-password`, {
+    const response = await axios.post(`${API_URL}/auth/change-password`, {
       currentPassword,
       newPassword
     }, {

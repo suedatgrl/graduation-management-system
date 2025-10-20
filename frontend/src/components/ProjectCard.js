@@ -63,12 +63,8 @@ const ProjectCard = ({
                 Başvuruldu
               </span>
             )}
-            {hasActiveApplication && !hasApplied && (
-              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
-                Başvuru Engelli
-              </span>
-            )}
-            {/* YENİ: Son tarih geçti uyarısı */}
+         
+            {/*  Son tarih geçti uyarısı */}
             {isDeadlinePassed && isStudent && (
               <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
                 Süre Doldu
@@ -100,7 +96,7 @@ const ProjectCard = ({
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
         {isStudent && (
           <>
-            {/* YENİ: Tarih geçti mesajı */}
+            {/*  Tarih geçti mesajı */}
             {isDeadlinePassed ? (
               <div className="flex items-center space-x-2 text-red-600 text-sm">
                 <AlertTriangle className="h-4 w-4" />
@@ -135,7 +131,7 @@ const ProjectCard = ({
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
             >
               <Users className="h-4 w-4" />
-              <span>Başvurular ({project.applicationCount || 0})</span>
+              <span>Başvurular </span>
             </button>
           </>
         )}

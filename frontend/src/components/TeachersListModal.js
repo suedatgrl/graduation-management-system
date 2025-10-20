@@ -51,11 +51,7 @@ const TeachersListModal = ({ teachers, onClose }) => {
                             <p className="text-sm font-medium text-gray-900">
                               {teacher.firstName} {teacher.lastName}
                             </p>
-                            {!teacher.isActive && (
-                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                Pasif
-                              </span>
-                            )}
+                      
                           </div>
                           <div className="flex items-center text-sm text-gray-500 mt-1">
                             <Mail className="h-4 w-4 mr-1" />

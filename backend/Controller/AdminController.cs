@@ -9,7 +9,7 @@ using GraduationProjectManagement.Data;
 
 namespace GraduationProjectManagement.Controller
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     
@@ -23,14 +23,20 @@ namespace GraduationProjectManagement.Controller
             _adminService = adminService;
             _context = context;  // YENİ
         }
-
+        [Authorize] 
         [HttpGet("settings")]
         public async Task<IActionResult> GetSettings()
         {
             var settings = await _adminService.GetAllSettingsAsync();
+
+               foreach(var setting in settings)
+    {
+        Console.WriteLine($"Key: {setting.Key}, Value: {setting.Value}");
+    }
             return Ok(settings);
         }
-
+         
+        [AllowAnonymous]
         [HttpGet("settings/{key}")]
         public async Task<IActionResult> GetSetting(string key)
         {
@@ -39,7 +45,7 @@ namespace GraduationProjectManagement.Controller
                 return NotFound();
             return Ok(setting);
         }
-
+    
         [HttpPut("settings/{key}")]
         public async Task<IActionResult> UpdateSetting(string key, [FromBody] UpdateSettingDto dto)
         {
