@@ -102,7 +102,7 @@ const EditProjectModal = ({ project, onSubmit, onClose }) => {
 
           <div>
             <label htmlFor="courseCode" className="block text-sm font-medium text-gray-700 mb-1">
-              Kurs Kodu
+              Ders Kodu
             </label>
             <select
               id="courseCode"
@@ -112,7 +112,7 @@ const EditProjectModal = ({ project, onSubmit, onClose }) => {
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Kurs seçin</option>
+              <option value="">Ders kodu seçin</option>
               <option value="BLM101">BLM101 - Türkçe</option>
               <option value="COM101">COM101 - English</option>
             </select>

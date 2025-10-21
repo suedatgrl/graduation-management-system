@@ -366,7 +366,7 @@ return (
                 <strong>{activeApplication?.projectTitle}</strong> projesine başvurunuz bulunmaktadır.
               </p>
               <p className="text-sm text-yellow-700 mt-2">
-                Bu başvuru sonuçlanana kadar yeni başvuru yapamazsınız.
+                Yalnızca bir projeye başvurma hakkınız var.
               </p>
             </div>
           </div>

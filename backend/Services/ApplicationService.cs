@@ -5,17 +5,24 @@ using GraduationProjectManagement.DTOs;
 using GraduationProjectManagement.Models;
 
 
+
+
 namespace GraduationProjectManagement.Services
 {
     public class ApplicationService : IApplicationService
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService; 
 
-        public ApplicationService(AppDbContext context, IMapper mapper)
+         public ApplicationService(
+            AppDbContext context, 
+            IMapper mapper,
+            INotificationService notificationService)  // YENİ PARAMETRE
         {
             _context = context;
             _mapper = mapper;
+            _notificationService = notificationService;  // YENİ
         }
 
         public async Task<ApplicationDto?> ApplyToProjectAsync(CreateApplicationDto dto, int studentId)
@@ -73,29 +80,70 @@ namespace GraduationProjectManagement.Services
             return _mapper.Map<ApplicationDto>(result);
         }
 
-       public async Task<ApplicationDto?> ReviewApplicationAsync(int applicationId, ReviewApplicationDto dto, int teacherId)
-{
-    var application = await _context.ProjectApplications
-        .Include(pa => pa.Project)
-        .Include(pa => pa.Student)
-        .FirstOrDefaultAsync(pa => pa.Id == applicationId && pa.Project.TeacherId == teacherId);
+ 
+// ReviewApplicationAsync metoduna bildirim ekleyin
 
-    if (application == null || application.Status != ApplicationStatus.Pending)
-        return null;
+ public async Task<ProjectApplicationDto?> ReviewApplicationAsync(
+            int applicationId, 
+            int teacherId, 
+            ApplicationStatus newStatus, 
+            string? reviewNotes)
+        {
+            var application = await _context.ProjectApplications
+                .Include(pa => pa.Project)
+                    .ThenInclude(p => p.Teacher)
+                .Include(pa => pa.Student)
+                .FirstOrDefaultAsync(pa => pa.Id == applicationId && pa.Project.TeacherId == teacherId);
 
-    application.Status = dto.Status;
-    application.ReviewedAt = DateTime.UtcNow;
-    
-    // Bu satır eksikti - ReviewNotes'u kaydet
-    application.ReviewNotes = dto.ReviewNotes;
+            if (application == null)
+                return null;
 
-    // Project counter'larını güncelle
-    await UpdateProjectCountersAsync(application.ProjectId);
+            application.Status = newStatus;
+            application.ReviewNotes = reviewNotes;
+            application.ReviewedAt = DateTime.UtcNow;
 
-    await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-    return _mapper.Map<ApplicationDto>(application);
-}
+            // Bildirim gönder - Artık direkt kullanabiliriz
+            try
+            {
+                if (newStatus == ApplicationStatus.Approved)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        application.StudentId,
+                        NotificationType.ApplicationApproved,
+                        " Başvurunuz Onaylandı!",
+                        $"'{application.Project.Title}' projesine başvurunuz onaylandı! Tebrikler!",
+                        application.ProjectId,
+                        application.Id
+                    );
+                }
+                else if (newStatus == ApplicationStatus.Rejected)
+                {
+                    var message = string.IsNullOrEmpty(reviewNotes)
+                        ? $"'{application.Project.Title}' projesine başvurunuz reddedildi."
+                        : $"'{application.Project.Title}' projesine başvurunuz reddedildi. Not: {reviewNotes}";
+
+                    await _notificationService.CreateNotificationAsync(
+                        application.StudentId,
+                        NotificationType.ApplicationRejected,
+                        " Başvurunuz Reddedildi",
+                        message,
+                        application.ProjectId,
+                        application.Id
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bildirim gönderme hatası: {ex.Message}");
+            }
+
+            await UpdateProjectCountersAsync(application.ProjectId);
+            
+            return MapToApplicationDto(application);
+        }
+
         public async Task<IEnumerable<ApplicationDto>> GetStudentApplicationsAsync(int studentId)
         {
             var applications = await _context.ProjectApplications
@@ -105,22 +153,66 @@ namespace GraduationProjectManagement.Services
                 .OrderByDescending(pa => pa.AppliedAt)
                 .ToListAsync();
 
-               foreach (var app in applications)
-    {
-        Console.WriteLine($"Raw Application {app.Id}: Status = {app.Status} ({(int)app.Status})");
-    }
+            foreach (var app in applications)
+            {
+                Console.WriteLine($"Raw Application {app.Id}: Status = {app.Status} ({(int)app.Status})");
+            }
 
-    var result = _mapper.Map<IEnumerable<ApplicationDto>>(applications);
-    
-    // Mapped result'ı da kontrol edin
-    foreach (var dto in result)
-    {
-        Console.WriteLine($"Mapped Application {dto.Id}: Status = '{dto.Status}'");
-    }
+            var result = _mapper.Map<IEnumerable<ApplicationDto>>(applications);
 
-    return result;
+            // Mapped result'ı da kontrol edin
+            foreach (var dto in result)
+            {
+                Console.WriteLine($"Mapped Application {dto.Id}: Status = '{dto.Status}'");
+            }
+
+            return result;
 
 
+        }
+
+         private async Task UpdateProjectCountersAsync(int projectId)
+        {
+            var project = await _context.Projects
+                .Include(p => p.Applications)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
+
+            if (project != null)
+            {
+                project.CurrentStudents = project.Applications
+                    .Count(a => a.Status == ApplicationStatus.Approved);
+                
+                project.TotalApplications = project.Applications
+                    .Count(a => a.Status == ApplicationStatus.Pending || 
+                               a.Status == ApplicationStatus.Approved);
+
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        private ProjectApplicationDto MapToApplicationDto(ProjectApplication application)
+        {
+            return new ProjectApplicationDto
+            {
+                Id = application.Id,
+                ProjectId = application.ProjectId,
+                ProjectTitle = application.Project?.Title ?? "",
+                StudentId = application.StudentId,
+                StudentName = $"{application.Student?.FirstName} {application.Student?.LastName}",
+                StudentEmail = application.Student?.Email ?? "",
+                StudentNumber = application.Student?.StudentNumber,
+                Status = (int)application.Status,
+                StatusText = application.Status switch
+                {
+                    ApplicationStatus.Pending => "Beklemede",
+                    ApplicationStatus.Approved => "Onaylandı",
+                    ApplicationStatus.Rejected => "Reddedildi",
+                    _ => "Bilinmiyor"
+                },
+                AppliedAt = application.AppliedAt,
+                ReviewedAt = application.ReviewedAt,
+                ReviewNotes = application.ReviewNotes
+            };
         }
 
         public async Task<IEnumerable<ApplicationDto>> GetProjectApplicationsAsync(int projectId, int teacherId)
@@ -135,25 +227,7 @@ namespace GraduationProjectManagement.Services
             return _mapper.Map<IEnumerable<ApplicationDto>>(applications);
         }
 
-        private async Task UpdateProjectCountersAsync(int projectId)
-        {
-            var project = await _context.Projects
-                .Include(p => p.Applications)
-                .FirstOrDefaultAsync(p => p.Id == projectId);
-
-            if (project != null)
-            {
-                // Onaylanan öğrenci sayısı
-                project.CurrentStudents = project.Applications
-                    .Count(a => a.Status == ApplicationStatus.Approved);
-
-                // Toplam aktif başvuru sayısı (pending + approved)
-                project.TotalApplications = project.Applications
-                    .Count(a => a.Status == ApplicationStatus.Pending || a.Status == ApplicationStatus.Approved);
-
-                _context.Projects.Update(project);
-            }
-        }
+  
 
         public async Task<bool> WithdrawApplicationAsync(int applicationId, int studentId)
         {

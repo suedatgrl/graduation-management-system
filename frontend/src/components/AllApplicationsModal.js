@@ -137,7 +137,7 @@ const AllApplicationsModal = ({ projects, onClose }) => {
                         {item.project.title}
                       </h4>
                       <div className="flex items-center mt-1 space-x-3 text-sm text-gray-500">
-                        <span>Kurs: {item.project.courseCode}</span>
+                        <span>Ders Kodu: {item.project.courseCode}</span>
                         <span>•</span>
                         <span>{item.applications.length} başvuru</span>
                       </div>

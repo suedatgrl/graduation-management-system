@@ -100,7 +100,7 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
 
           <div>
             <label htmlFor="courseCode" className="block text-sm font-medium text-gray-700 mb-1">
-              Kurs Kodu *
+              Ders Kodu *
             </label>
             <select
               id="courseCode"
@@ -110,7 +110,7 @@ const CreateProjectModal = ({ onSubmit, onClose }) => {
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Kurs kodu seçin</option>
+              <option value="">Ders kodu seçin</option>
              
                 {courseCodes.filter(code => code.value.startsWith('BLM')).map(code => (
                   <option key={code.value} value={code.value}>

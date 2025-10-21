@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GraduationProjectManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251019133642_Update4")]
-    partial class Update4
+    [Migration("20251020155226_InitialCreateWithNotifications")]
+    partial class InitialCreateWithNotifications
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,60 @@ namespace GraduationProjectManagement.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("GraduationProjectManagement.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsEmailSent")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("RelatedApplicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("RelatedProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("RelatedApplicationId");
+
+                    b.HasIndex("RelatedProjectId");
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("GraduationProjectManagement.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -35,7 +89,8 @@ namespace GraduationProjectManagement.Migrations
 
                     b.Property<string>("CourseCode")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -70,7 +125,9 @@ namespace GraduationProjectManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TeacherId");
+                    b.HasIndex("CourseCode");
+
+                    b.HasIndex("TeacherId", "IsActive");
 
                     b.ToTable("Projects");
                 });
@@ -103,12 +160,47 @@ namespace GraduationProjectManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("ProjectId", "Status");
 
                     b.HasIndex("StudentId", "ProjectId")
                         .IsUnique();
 
                     b.ToTable("ProjectApplications");
+                });
+
+            modelBuilder.Entity("GraduationProjectManagement.Models.ProjectQuotaAlert", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsNotified")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("NotifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("StudentId", "ProjectId", "IsActive");
+
+                    b.ToTable("ProjectQuotaAlerts");
                 });
 
             modelBuilder.Entity("GraduationProjectManagement.Models.SystemSettings", b =>
@@ -148,20 +240,29 @@ namespace GraduationProjectManagement.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "Son başvuru tarihi",
+                            Description = "Proje başvuruları için son tarih",
                             Key = "ApplicationDeadline",
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             UpdatedBy = 1,
-                            Value = "2025-12-31T23:59:59"
+                            Value = "2025-12-31T23:59:59.0000000Z"
                         },
                         new
                         {
                             Id = 2,
-                            Description = "Proje seçimi başlangıç tarihi",
-                            Key = "SelectionStartDate",
+                            Description = "Sistem adı",
+                            Key = "SystemName",
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             UpdatedBy = 1,
-                            Value = "2025-12-31T23:59:59"
+                            Value = "Bitirme Projesi Yönetim Sistemi"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Öğretmen başına maksimum proje sayısı",
+                            Key = "MaxProjectsPerTeacher",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = 1,
+                            Value = "10"
                         });
                 });
 
@@ -211,10 +312,12 @@ namespace GraduationProjectManagement.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("StudentNumber")
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("TcIdentityNumber")
-                        .HasColumnType("text");
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)");
 
                     b.Property<int?>("TotalQuota")
                         .HasColumnType("integer");
@@ -222,6 +325,11 @@ namespace GraduationProjectManagement.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("StudentNumber");
+
+                    b.HasIndex("TcIdentityNumber")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -236,8 +344,34 @@ namespace GraduationProjectManagement.Migrations
                             IsActive = true,
                             LastName = "User",
                             PasswordHash = "$2a$11$NSBPgA.VcvWwJIqf7eIRjemdwb.lD64GjdSu7Z2Wuy6By4kG.H2A2",
-                            Role = 3
+                            Role = 3,
+                            TcIdentityNumber = "12345678901"
                         });
+                });
+
+            modelBuilder.Entity("GraduationProjectManagement.Models.Notification", b =>
+                {
+                    b.HasOne("GraduationProjectManagement.Models.ProjectApplication", "RelatedApplication")
+                        .WithMany()
+                        .HasForeignKey("RelatedApplicationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("GraduationProjectManagement.Models.Project", "RelatedProject")
+                        .WithMany()
+                        .HasForeignKey("RelatedProjectId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("GraduationProjectManagement.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RelatedApplication");
+
+                    b.Navigation("RelatedProject");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GraduationProjectManagement.Models.Project", b =>
@@ -245,7 +379,7 @@ namespace GraduationProjectManagement.Migrations
                     b.HasOne("GraduationProjectManagement.Models.User", "Teacher")
                         .WithMany("Projects")
                         .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Teacher");
@@ -261,6 +395,25 @@ namespace GraduationProjectManagement.Migrations
 
                     b.HasOne("GraduationProjectManagement.Models.User", "Student")
                         .WithMany("Applications")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("GraduationProjectManagement.Models.ProjectQuotaAlert", b =>
+                {
+                    b.HasOne("GraduationProjectManagement.Models.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GraduationProjectManagement.Models.User", "Student")
+                        .WithMany()
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

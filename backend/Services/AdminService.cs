@@ -419,7 +419,7 @@ namespace GraduationProjectManagement.Services
                 var hasProjects = await _context.Projects.AnyAsync(p => p.TeacherId == userId);
                 if (hasProjects)
                 {
-                    throw new InvalidOperationException("Bu öğretmenin projeleri bulunmaktadır. Önce projeleri silmelisiniz.");
+                    throw new InvalidOperationException("Bu öğretim üyesinin projeleri bulunmaktadır. Önce projeleri silmelisiniz.");
                 }
             }
             else if (user.Role == UserRole.Student)

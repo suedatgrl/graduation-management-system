@@ -74,7 +74,7 @@ const ExcelUploadModal = ({ onSubmit, onClose }) => {
                 }`}
               >
                 <User className="h-5 w-5" />
-                <span>Öğretmen</span>
+                <span>Öğretim üyesi</span>
               </button>
             </div>
           </div>

@@ -3,6 +3,7 @@ using GraduationProjectManagement.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using GraduationProjectManagement.Services.BackgroundServices;
 using System.Text;
 using Microsoft.OpenApi.Models;
 
@@ -89,7 +90,12 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<ITeacherService, TeacherService>(); // Bu satırı ekleyin
+builder.Services.AddScoped<ITeacherService, TeacherService>(); 
+// YENİ SATIRLAR
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHostedService<NotificationBackgroundService>();  
+
 
 var app = builder.Build();
 

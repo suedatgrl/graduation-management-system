@@ -1,5 +1,6 @@
-import React from 'react';
-import { Calendar, User, Users, BookOpen, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, User, Users, BookOpen, AlertTriangle, Bell, BellOff } from 'lucide-react';
+import notificationService from '../services/notificationService';
 
 const ProjectCard = ({ 
   project, 
@@ -9,21 +10,49 @@ const ProjectCard = ({
   userRole, 
   appliedProjects = [], 
   hasActiveApplication = false,
-  isDeadlinePassed = false  // YENİ PROP
+  isDeadlinePassed = false
 }) => {
   const isStudent = userRole === 'student';
   const isTeacher = userRole === 'teacher';
   const hasApplied = appliedProjects.includes(project.id);
-  const isFull = project.currentStudents >= project.maxStudents;
   
- 
+  const isStudentQuotaFull = project.currentStudents >= project.maxStudents;
+  const isApplicationQuotaFull = project.isApplicationFull || 
+                                 (project.totalApplications >= project.maxApplications);
+  
+  const [hasQuotaAlert, setHasQuotaAlert] = useState(false);
+  const [alertLoading, setAlertLoading] = useState(false);
+
   const isApplyDisabled = isStudent && (
     hasApplied || 
     !project.isActive || 
-    isFull || 
+    isStudentQuotaFull ||
+    isApplicationQuotaFull ||
     hasActiveApplication ||
-    isDeadlinePassed  
+    isDeadlinePassed
   );
+
+  const handleQuotaAlertToggle = async (e) => {
+    e.stopPropagation(); // Kartın tıklama olayını engelle
+    
+    setAlertLoading(true);
+    try {
+      if (hasQuotaAlert) {
+        await notificationService.removeQuotaAlert(project.id);
+        setHasQuotaAlert(false);
+        alert('Kontenjan bildirimi iptal edildi.');
+      } else {
+        await notificationService.createQuotaAlert(project.id);
+        setHasQuotaAlert(true);
+        alert('Kontenjan açıldığında bildirim alacaksınız!');
+      }
+    } catch (error) {
+      console.error('Quota alert error:', error);
+      alert(error.response?.data?.message || 'Bir hata oluştu.');
+    } finally {
+      setAlertLoading(false);
+    }
+  };
 
   const getCourseColor = () => {
     if (project.courseCode?.startsWith('BLM')) {
@@ -48,26 +77,60 @@ const ProjectCard = ({
           </div>
           
           <div className="flex flex-col items-end space-y-2">
+            {/* YENİ: Kontenjan Dolu ise Zil Butonu */}
+            {isStudent && isApplicationQuotaFull && !hasApplied && (
+              <button
+                onClick={handleQuotaAlertToggle}
+                disabled={alertLoading}
+                className={`group relative flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                  hasQuotaAlert
+                    ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                title={hasQuotaAlert ? 'Bildirimi iptal et' : ''}
+              >
+                {alertLoading ? (
+                  <div className="animate-spin h-3 w-3 border-2 border-gray-600 border-t-transparent rounded-full"></div>
+                ) : hasQuotaAlert ? (
+                  <BellOff className="h-3 w-3" />
+                ) : (
+                  <Bell className="h-3 w-3" />
+                )}
+                <span className="text-xs">
+                  {hasQuotaAlert ? 'Bildirimi İptal Et' : 'Haber Ver'}
+                </span>
+                
+                {/* Tooltip */}
+                <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block w-48 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 z-10">
+                  {hasQuotaAlert 
+                    ? 'Kontenjan bildirimi iptal edilecek' 
+                    : 'Kontenjan açılınca email ve bildirim gönderilir'}
+                  <div className="absolute top-full right-4 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                </div>
+              </button>
+            )}
+
             {!project.isActive && (
               <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
                 Pasif
               </span>
             )}
-            {isFull && (
-              <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">
+            
+            {isStudentQuotaFull && (
+              <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
                 Kontenjan Dolu
               </span>
             )}
+            
+            {!isStudentQuotaFull && isApplicationQuotaFull && (
+              <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">
+                Başvuru Kontenjanı Dolu
+              </span>
+            )}
+            
             {hasApplied && (
               <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
                 Başvuruldu
-              </span>
-            )}
-         
-            {/*  Son tarih geçti uyarısı */}
-            {isDeadlinePassed && isStudent && (
-              <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
-                Süre Doldu
               </span>
             )}
           </div>
@@ -84,7 +147,10 @@ const ProjectCard = ({
           </div>
           <div className="flex items-center space-x-1">
             <Users className="h-4 w-4" />
-            <span>{project.currentStudents}/{project.maxStudents}</span>
+            <span className="font-medium">
+              {project.currentStudents}/{project.maxStudents}
+            </span>
+          
           </div>
         </div>
           
@@ -96,11 +162,15 @@ const ProjectCard = ({
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
         {isStudent && (
           <>
-            {/*  Tarih geçti mesajı */}
             {isDeadlinePassed ? (
               <div className="flex items-center space-x-2 text-red-600 text-sm">
                 <AlertTriangle className="h-4 w-4" />
                 <span>Başvuru süresi sona erdi</span>
+              </div>
+            ) : isApplicationQuotaFull ? (
+              <div className="flex items-center space-x-2 text-orange-600 text-sm">
+                <AlertTriangle className="h-4 w-4" />
+                <span>Başvuru kontenjanı dolmuştur </span>
               </div>
             ) : (
               <button
@@ -131,7 +201,7 @@ const ProjectCard = ({
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
             >
               <Users className="h-4 w-4" />
-              <span>Başvurular </span>
+              <span>Başvurular ({project.totalApplications || 0}/{project.maxApplications})</span>
             </button>
           </>
         )}

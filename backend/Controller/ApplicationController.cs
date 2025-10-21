@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using GraduationProjectManagement.Services;
 using GraduationProjectManagement.DTOs;
+using GraduationProjectManagement.Models;
 using System.Security.Claims;
 
 namespace GraduationProjectManagement.Controllers
@@ -51,7 +52,8 @@ namespace GraduationProjectManagement.Controllers
         public async Task<IActionResult> ReviewApplication(int id, [FromBody] ReviewApplicationDto dto)
         {
             var teacherId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var result = await _applicationService.ReviewApplicationAsync(id, dto, teacherId);
+            var status = (ApplicationStatus)dto.Status;
+            var result = await _applicationService.ReviewApplicationAsync(id, teacherId,status, dto.ReviewNotes);
             if (result == null)
                 return BadRequest("Başvuru bulunamadı ya da işlem yapılamaz durumda.");
             return Ok(result);

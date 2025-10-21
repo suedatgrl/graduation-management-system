@@ -83,7 +83,7 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
                 }`}
               >
                 <User className="h-5 w-5" />
-                <span>Öğretmen</span>
+                <span>Öğretim üyesi</span>
               </button>
             </div>
           </div>
@@ -206,7 +206,7 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
                 className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Bu öğretmenin danışmanlık yapabileceği toplam öğrenci sayısı
+                Bu öğretim üyesinin danışmanlık yapabileceği toplam öğrenci sayısı
               </p>
             </div>
           )}

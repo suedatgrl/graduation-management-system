@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import NotificationBell from '../components/NotificationBell'; 
 import { useAuth } from '../context/AuthContext';
 import { 
   BookOpen, 
@@ -90,7 +91,7 @@ const Layout = ({ children }) => {
   const getRoleText = (role) => {
     switch (role) {
       case 1: return 'Öğrenci';
-      case 2: return 'Öğretmen';
+      case 2: return 'Öğretim Üyesi';
       case 3: return 'Admin';
       default: return 'Kullanıcı';
     }
@@ -164,9 +165,12 @@ const Layout = ({ children }) => {
                 Bitirme Projeleri Yönetim Sistemi
               </h1>
             </div>
+            
             <div className="ml-4 flex items-center md:ml-6">
               <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-full ${getRoleColor(user?.role)}`}>
+                <div>{user?.role === 1 && <NotificationBell />}</div>
+                 <div className={`p-2 rounded-full ${getRoleColor(user?.role)}`}>
+                  
                   <RoleIcon className="h-5 w-5" />
                 </div>
                 <div className="hidden md:block">

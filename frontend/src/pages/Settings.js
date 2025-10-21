@@ -70,7 +70,7 @@ const Settings = () => {
   const getRoleText = (role) => {
     switch (role) {
       case 1: return 'Öğrenci';
-      case 2: return 'Öğretmen';
+      case 2: return 'Öğretim Üyesi';
       case 3: return 'Admin';
       default: return 'Bilinmeyen';
     }
@@ -186,7 +186,7 @@ const Settings = () => {
                 {user?.courseCode && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {user.role === 1 ? 'Kurs Kodu' : 'Departman'}
+                      {user.role === 1 ? 'Ders Kodu' : 'Departman'}
                     </label>
                     <div className="flex items-center space-x-2">
                       <input

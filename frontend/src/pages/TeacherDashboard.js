@@ -5,7 +5,9 @@ import ProjectCard from '../components/ProjectCard';
 import CreateProjectModal from '../components/CreateProjectModal';
 import EditProjectModal from '../components/EditProjectModal';
 import ApplicationsModal from '../components/ApplicationsModal';
-import AllApplicationsModal from '../components/AllApplicationsModal'; // Yeni import
+import AllApplicationsModal from '../components/AllApplicationsModal'; 
+import ModalsForTeacher from '../components/ModalsForTeacher';  // YENİ IMPORT
+
 import { Plus, BookOpen, Users, Clock, CheckCircle, XCircle, Filter } from 'lucide-react';
 
 const TeacherDashboard = () => {
@@ -20,6 +22,10 @@ const TeacherDashboard = () => {
   const [languageFilter, setLanguageFilter] = useState('all');
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [allApplications, setAllApplications] = useState([]);
+
+  const [showProjectsModal, setShowProjectsModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState({ title: '', filterType: 'all' });
+
 
   useEffect(() => {
     fetchProjects();
@@ -103,7 +109,6 @@ const TeacherDashboard = () => {
     setShowApplicationsModal(true);
   };
 
-  // Güncellenmiş: Tüm başvuruları liste halinde göster
   const handleViewAllApplications = () => {
     setShowAllApplicationsModal(true);
   };
@@ -119,6 +124,11 @@ const TeacherDashboard = () => {
         console.error('Error deleting project:', error);
       }
     }
+  };
+
+   const openProjectsModal = (title, filterType) => {
+    setModalConfig({ title, filterType });
+    setShowProjectsModal(true);
   };
 
   const getProjectStats = () => {
@@ -148,7 +158,7 @@ const TeacherDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header - değişiklik yok */}
+      {/* Header  */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -169,27 +179,34 @@ const TeacherDashboard = () => {
 
       {/* Stats - sadece Toplam Başvuru kartı güncellenmiş */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Toplam Proje */}
+        <div 
+          onClick={() => openProjectsModal('Tüm Projeler', 'all')}
+          className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105"
+        >
           <div className="flex items-center">
-            <BookOpen className="h-8 w-8 text-blue-600" />
+            <BookOpen className="h-8 w-8" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Toplam Proje</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-purple-100">Toplam Proje</p>
+              <p className="text-2xl font-bold">{stats.total}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Aktif Proje */}
+        <div 
+          onClick={() => openProjectsModal('Aktif Projeler', 'active')}
+          className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105"
+        >
           <div className="flex items-center">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+            <CheckCircle className="h-8 w-8" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Aktif Proje</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
+              <p className="text-green-100">Aktif Proje</p>
+              <p className="text-2xl font-bold">{stats.active}</p>
             </div>
           </div>
         </div>
 
-        {/* Güncellenmiş: Tıklanabilir Başvuru Stats */}
         <div 
           className="bg-white rounded-lg shadow p-6 cursor-pointer hover:bg-gray-50 transition-colors"
           onClick={handleViewAllApplications}
@@ -204,32 +221,38 @@ const TeacherDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        
+        {/* Türkçe Projeler */}
+        <div 
+          onClick={() => openProjectsModal('Türkçe Projeler', 'turkish')}
+          className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105"
+        >
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">TR</span>
-            </div>
+            <BookOpen className="h-8 w-8" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Türkçe Projeler</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.turkish}</p>
+              <p className="text-indigo-100">Türkçe Projeler</p>
+              <p className="text-2xl font-bold">{stats.turkish}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* English Projeler */}
+        <div 
+          onClick={() => openProjectsModal('English Projeler', 'english')}
+          className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg shadow p-6 text-white cursor-pointer hover:from-teal-600 hover:to-teal-700 transition-all transform hover:scale-105"
+        >
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">EN</span>
-            </div>
+            <BookOpen className="h-8 w-8" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">English Projeler</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.english}</p>
+              <p className="text-teal-100">İngilizce Projeler</p>
+              <p className="text-2xl font-bold">{stats.english}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Projects - değişiklik yok */}
+
+      {/* Projects  */}
       <div className="bg-white rounded-lg shadow">
         <div className="border-b border-gray-200 p-6">
           <div className="flex items-center justify-between">
@@ -306,11 +329,20 @@ const TeacherDashboard = () => {
         />
       )}
 
-      {/* Yeni: Tüm Başvurular Modal */}
+      {/*  Tüm Başvurular Modal */}
       {showAllApplicationsModal && (
         <AllApplicationsModal
           projects={filteredProjects}
           onClose={() => setShowAllApplicationsModal(false)}
+        />
+      )}
+
+      {showProjectsModal && (
+        <ModalsForTeacher
+          projects={projects}
+          title={modalConfig.title}
+          filterType={modalConfig.filterType}
+          onClose={() => setShowProjectsModal(false)}
         />
       )}
     </div>

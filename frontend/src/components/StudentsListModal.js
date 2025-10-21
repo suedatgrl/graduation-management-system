@@ -51,11 +51,7 @@ const StudentsListModal = ({ students, onClose }) => {
                             <p className="text-sm font-medium text-gray-900">
                               {student.firstName} {student.lastName}
                             </p>
-                            {!student.isActive && (
-                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                Pasif
-                              </span>
-                            )}
+                      
                           </div>
                           <div className="flex items-center space-x-4 mt-1">
                             <div className="flex items-center text-sm text-gray-500">

@@ -46,7 +46,7 @@ const EditUserModal = ({ user, onSubmit, onClose }) => {
     }
 
     if (isStudent && !formData.courseCode) {
-      setError('Kurs kodu seçiniz.');
+      setError('Ders kodu seçiniz.');
       return;
     }
 
@@ -186,7 +186,7 @@ const EditUserModal = ({ user, onSubmit, onClose }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Kurs Kodu *
+                  Ders Kodu *
                 </label>
                 <select
                   name="courseCode"

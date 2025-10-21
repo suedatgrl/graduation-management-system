@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace GraduationProjectManagement.Data
 {
@@ -7,10 +8,19 @@ namespace GraduationProjectManagement.Data
     {
         public AppDbContext CreateDbContext(string[] args)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-            optionsBuilder.UseNpgsql("Host=localhost;Database=grad;Username=postgres;Password=postgres");
+            // Configuration dosyasını oku
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
 
-            return new AppDbContext(optionsBuilder.Options);
+            // DbContextOptions oluştur
+            var builder = new DbContextOptionsBuilder<AppDbContext>();
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+            builder.UseNpgsql(connectionString);
+
+            return new AppDbContext(builder.Options);
         }
     }
 }

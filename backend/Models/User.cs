@@ -42,7 +42,7 @@ namespace GraduationProjectManagement.Models
         public bool IsActive { get; set; } = true;
         
         // Navigation properties
-        public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+         public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
         public virtual ICollection<ProjectApplication> Applications { get; set; } = new List<ProjectApplication>();
     }
     
