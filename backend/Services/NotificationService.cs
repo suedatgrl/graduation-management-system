@@ -231,7 +231,7 @@ namespace GraduationProjectManagement.Services
         public async Task SendDeadlineWarningsAsync()
         {
             // Son başvuru tarihini al
-             Console.WriteLine("🔔 SendDeadlineWarningsAsync başladı...");
+            Console.WriteLine("🔔 SendDeadlineWarningsAsync başladı...");
             var deadlineSetting = await _context.SystemSettings
                 .FirstOrDefaultAsync(s => s.Key == "ApplicationDeadline");
 
@@ -251,7 +251,7 @@ namespace GraduationProjectManagement.Services
             // Başvurusu olmayan öğrencileri bul
             var studentsWithoutApplications = await _context.Users
                 .Where(u => u.Role == UserRole.Student && u.IsActive)
-                .Where(u => !u.Applications.Any(a => a.Status == ApplicationStatus.Pending || 
+                .Where(u => !u.Applications.Any(a => a.Status == ApplicationStatus.Pending ||
                                                     a.Status == ApplicationStatus.Approved))
                 .ToListAsync();
 
@@ -260,7 +260,7 @@ namespace GraduationProjectManagement.Services
                 // Bugün için bildirim gönderilmiş mi kontrol et
                 var today = DateTime.UtcNow.Date;
                 var alreadySentToday = await _context.Notifications
-                    .AnyAsync(n => n.UserId == student.Id && 
+                    .AnyAsync(n => n.UserId == student.Id &&
                                   n.Type == NotificationType.DeadlineWarning &&
                                   n.CreatedAt.Date == today);
 
@@ -268,8 +268,8 @@ namespace GraduationProjectManagement.Services
                     continue;
 
                 // Bildirim oluştur
-                var title = daysUntilDeadline == 0 
-                    ? "🚨 SON GÜN - Proje Seçimi!" 
+                var title = daysUntilDeadline == 0
+                    ? "🚨 SON GÜN - Proje Seçimi!"
                     : $"⚠️ Son {daysUntilDeadline} Gün - Proje Seçimi";
 
                 var message = daysUntilDeadline == 0
@@ -286,6 +286,103 @@ namespace GraduationProjectManagement.Services
                 // Email gönder
                 await _emailService.SendDeadlineWarningEmailAsync(student, daysUntilDeadline);
             }
+        }
+        
+        public async Task SendReviewDeadlineWarningsAsync()
+        {
+            Console.WriteLine("🔔 SendReviewDeadlineWarningsAsync başladı...");
+            
+            // Son değerlendirme tarihini al
+            var reviewDeadlineSetting = await _context.SystemSettings
+                .FirstOrDefaultAsync(s => s.Key == "ReviewDeadline");
+
+            if (reviewDeadlineSetting == null || string.IsNullOrEmpty(reviewDeadlineSetting.Value))
+            {
+                Console.WriteLine("⚠️ ReviewDeadline ayarı bulunamadı veya boş.");
+                return;
+            }
+
+            if (!DateTime.TryParse(reviewDeadlineSetting.Value, out var reviewDeadline))
+            {
+                Console.WriteLine("⚠️ ReviewDeadline parse edilemedi.");
+                return;
+            }
+
+            var now = DateTime.UtcNow;
+            var daysUntilDeadline = (reviewDeadline - now).Days;
+
+            Console.WriteLine($"📅 ReviewDeadline: {reviewDeadline}, Kalan Gün: {daysUntilDeadline}");
+
+            // Son 7 gün içinde miyiz?
+            if (daysUntilDeadline < 0 || daysUntilDeadline > 7)
+            {
+                Console.WriteLine("⏭️ Son 7 gün içinde değil, bildirim gönderilmeyecek.");
+                return;
+            }
+
+            // Bekleyen başvurusu olan öğretmenleri bul
+            var teachersWithPendingApplications = await _context.Users
+                .Where(u => u.Role == UserRole.Teacher && u.IsActive)
+                .Where(u => u.Projects.Any(p => p.Applications.Any(a => a.Status == ApplicationStatus.Pending)))
+                .Include(u => u.Projects)
+                    .ThenInclude(p => p.Applications)
+                .ToListAsync();
+
+            Console.WriteLine($"👨‍🏫 Bekleyen başvurusu olan {teachersWithPendingApplications.Count} öğretmen bulundu.");
+
+            foreach (var teacher in teachersWithPendingApplications)
+            {
+                // Bekleyen başvuru sayısını hesapla
+                var pendingCount = teacher.Projects
+                    .SelectMany(p => p.Applications)
+                    .Count(a => a.Status == ApplicationStatus.Pending);
+
+                if (pendingCount == 0)
+                    continue;
+
+                // Bugün için bildirim gönderilmiş mi kontrol et
+                var today = DateTime.UtcNow.Date;
+                var alreadySentToday = await _context.Notifications
+                    .AnyAsync(n => n.UserId == teacher.Id && 
+                                  n.Type == NotificationType.ReviewDeadlineWarning &&
+                                  n.CreatedAt.Date == today);
+
+                if (alreadySentToday)
+                {
+                    Console.WriteLine($"✅ {teacher.FirstName} {teacher.LastName} için bugün bildirim gönderilmiş.");
+                    continue;
+                }
+
+                // Bildirim oluştur
+                var title = daysUntilDeadline == 0 
+                    ? "🚨 SON GÜN - Başvuru Değerlendirme!" 
+                    : $"⏰ Son {daysUntilDeadline} Gün - Başvuru Değerlendirme";
+
+                var message = daysUntilDeadline == 0
+                    ? $"Başvuruları değerlendirmek için bugün son gün! {pendingCount} bekleyen başvurunuz var."
+                    : $"{pendingCount} bekleyen başvurunuz var. Değerlendirme için {daysUntilDeadline} gün kaldı!";
+
+                await CreateNotificationAsync(
+                    teacher.Id,
+                    NotificationType.ReviewDeadlineWarning,
+                    title,
+                    message
+                );
+
+                Console.WriteLine($"✉️ {teacher.FirstName} {teacher.LastName} için bildirim gönderildi.");
+
+                // Email gönder (opsiyonel)
+                try
+                {
+                    await _emailService.SendReviewDeadlineWarningEmailAsync(teacher, daysUntilDeadline, pendingCount);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Email gönderme hatası: {ex.Message}");
+                }
+            }
+
+            Console.WriteLine("✅ SendReviewDeadlineWarningsAsync tamamlandı.");
         }
 
         private string GetNotificationTypeText(NotificationType type)

@@ -12,7 +12,7 @@ namespace GraduationProjectManagement.Controller
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    
+
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _adminService;
@@ -23,19 +23,19 @@ namespace GraduationProjectManagement.Controller
             _adminService = adminService;
             _context = context;  // YENİ
         }
-        [Authorize] 
+        [Authorize]
         [HttpGet("settings")]
         public async Task<IActionResult> GetSettings()
         {
             var settings = await _adminService.GetAllSettingsAsync();
 
-               foreach(var setting in settings)
-    {
-        Console.WriteLine($"Key: {setting.Key}, Value: {setting.Value}");
-    }
+            foreach (var setting in settings)
+            {
+                Console.WriteLine($"Key: {setting.Key}, Value: {setting.Value}");
+            }
             return Ok(settings);
         }
-         
+
         [AllowAnonymous]
         [HttpGet("settings/{key}")]
         public async Task<IActionResult> GetSetting(string key)
@@ -45,7 +45,7 @@ namespace GraduationProjectManagement.Controller
                 return NotFound();
             return Ok(setting);
         }
-    
+
         [HttpPut("settings/{key}")]
         public async Task<IActionResult> UpdateSetting(string key, [FromBody] UpdateSettingDto dto)
         {
@@ -60,19 +60,19 @@ namespace GraduationProjectManagement.Controller
             var stats = await _adminService.GetDashboardStatsAsync();
             return Ok(stats);
         }
-           [HttpGet("students")]
-    public async Task<IActionResult> GetStudents()
-    {
-        var students = await _adminService.GetStudentsAsync();
-        return Ok(students);
-    }
+        [HttpGet("students")]
+        public async Task<IActionResult> GetStudents()
+        {
+            var students = await _adminService.GetStudentsAsync();
+            return Ok(students);
+        }
 
-    [HttpGet("teachers")]
-    public async Task<IActionResult> GetTeachers()
-    {
-        var teachers = await _adminService.GetTeachersAsync();
-        return Ok(teachers);
-    }
+        [HttpGet("teachers")]
+        public async Task<IActionResult> GetTeachers()
+        {
+            var teachers = await _adminService.GetTeachersAsync();
+            return Ok(teachers);
+        }
 
         [HttpGet("projects")]
         public async Task<IActionResult> GetProjects()
@@ -81,32 +81,32 @@ namespace GraduationProjectManagement.Controller
             return Ok(projects);
         }
 
-[HttpPut("users/{userId}")]
-public async Task<IActionResult> UpdateUser(int userId, [FromBody] UpdateUserDto dto)
-{
-    try
-    {
-        var updatedUser = await _adminService.UpdateUserAsync(userId, dto);
-        return Ok(new 
-        { 
-            message = "Kullanıcı başarıyla güncellendi.",
-            user = updatedUser
-        });
-    }
-    catch (InvalidOperationException ex)
-    {
-        return BadRequest(new { message = ex.Message });
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, new { message = "Kullanıcı güncellenirken bir hata oluştu." });
-    }
-}
+        [HttpPut("users/{userId}")]
+        public async Task<IActionResult> UpdateUser(int userId, [FromBody] UpdateUserDto dto)
+        {
+            try
+            {
+                var updatedUser = await _adminService.UpdateUserAsync(userId, dto);
+                return Ok(new
+                {
+                    message = "Kullanıcı başarıyla güncellendi.",
+                    user = updatedUser
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Kullanıcı güncellenirken bir hata oluştu." });
+            }
+        }
 
 
-    
 
-        // YENİ ENDPOINT
+
+
         [HttpGet("pending-applications")]
         public async Task<IActionResult> GetPendingApplications()
         {
@@ -213,10 +213,20 @@ public async Task<IActionResult> UpdateUser(int userId, [FromBody] UpdateUserDto
                 return BadRequest(ex.Message);
             }
         }
-    }
 
-    public class UpdateSettingDto
-    {
-        public string Value { get; set; } = string.Empty;
+
+        [HttpPut("settings/ReviewDeadline")]
+        public async Task<IActionResult> UpdateReviewDeadline([FromBody] UpdateSettingDto dto)
+        {
+            var updatedBy = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var setting = await _adminService.UpdateSettingAsync("ReviewDeadline", dto.Value, updatedBy);
+            return Ok(setting);
+        }
+
+
+        public class UpdateSettingDto
+        {
+            public string Value { get; set; } = string.Empty;
+        }
     }
 }

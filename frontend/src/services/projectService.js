@@ -58,14 +58,16 @@ async getProjects(courseCode = null) {
     return response.data;
   }
 
-  async applyToProject(projectId) {
-    const response = await axios.post(`${API_URL}/applications/apply-project`, {
-      projectId,
-    }, {
-      headers: this.getAuthHeaders()
-    });
-    return response.data;
-  }
+async applyToProject(projectId, studentNote = null) {
+  const response = await axios.post(`${API_URL}/applications/apply-project`, {
+    projectId,
+    studentNote  
+  }, {
+    headers: this.getAuthHeaders()
+  });
+  return response.data;
+}
+
 
   async getMyApplications() {
     const response = await axios.get(`${API_URL}/applications/my`, {

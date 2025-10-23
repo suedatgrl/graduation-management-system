@@ -9,6 +9,8 @@ namespace GraduationProjectManagement.Models
         [Required]
         public int StudentId { get; set; }
         
+
+
         [Required]
         public int ProjectId { get; set; }
         
@@ -20,6 +22,7 @@ namespace GraduationProjectManagement.Models
 
         public string? ReviewNotes { get; set; }
         
+        public string? StudentNote { get; set; }
         // Navigation properties
         public virtual User Student { get; set; } = null!;
         public virtual Project Project { get; set; } = null!;

@@ -196,5 +196,18 @@ namespace GraduationProjectManagement.Services
 
             await SendEmailAsync(student.Email, subject, body);
         }
+
+        public async Task SendReviewDeadlineWarningEmailAsync(User teacher, int daysRemaining, int pendingCount)
+{
+    var subject = daysRemaining == 0 
+        ? "🚨 SON GÜN - Başvuru Değerlendirme" 
+        : $"⏰ Son {daysRemaining} Gün - Başvuru Değerlendirme";
+
+    var message = daysRemaining == 0
+        ? $"Sayın {teacher.FirstName} {teacher.LastName},\n\n{pendingCount} bekleyen başvurunuz var ve bugün değerlendirme için son gün!\n\nLütfen acilen başvuruları değerlendirin."
+        : $"Sayın {teacher.FirstName} {teacher.LastName},\n\n{pendingCount} bekleyen başvurunuz var.\n\nDeğerlendirme için {daysRemaining} gün kaldı.";
+
+    await SendEmailAsync(teacher.Email, subject, message);
+}
     }
 }

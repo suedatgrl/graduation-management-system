@@ -62,7 +62,8 @@ namespace GraduationProjectManagement.Services
                 ProjectId = dto.ProjectId,
                 StudentId = studentId,
                 AppliedAt = DateTime.UtcNow,
-                Status = ApplicationStatus.Pending
+                Status = ApplicationStatus.Pending,
+                StudentNote = dto.StudentNote
             };
 
             _context.ProjectApplications.Add(application);
@@ -81,14 +82,27 @@ namespace GraduationProjectManagement.Services
         }
 
  
-// ReviewApplicationAsync metoduna bildirim ekleyin
-
  public async Task<ProjectApplicationDto?> ReviewApplicationAsync(
             int applicationId, 
             int teacherId, 
             ApplicationStatus newStatus, 
             string? reviewNotes)
         {
+
+            var reviewDeadlineSetting = await _context.SystemSettings
+                .FirstOrDefaultAsync(s => s.Key == "ReviewDeadline");
+
+            if (reviewDeadlineSetting != null && !string.IsNullOrEmpty(reviewDeadlineSetting.Value))
+            {
+                if (DateTime.TryParse(reviewDeadlineSetting.Value, out var reviewDeadline))
+                {
+                    if (DateTime.UtcNow > reviewDeadline)
+                    {
+                        // Son tarih geçmiş
+                        return null;
+                    }
+                }
+            }
             var application = await _context.ProjectApplications
                 .Include(pa => pa.Project)
                     .ThenInclude(p => p.Teacher)
@@ -104,7 +118,7 @@ namespace GraduationProjectManagement.Services
 
             await _context.SaveChangesAsync();
 
-            // Bildirim gönder - Artık direkt kullanabiliriz
+            // Bildirim gönder 
             try
             {
                 if (newStatus == ApplicationStatus.Approved)
@@ -160,7 +174,7 @@ namespace GraduationProjectManagement.Services
 
             var result = _mapper.Map<IEnumerable<ApplicationDto>>(applications);
 
-            // Mapped result'ı da kontrol edin
+
             foreach (var dto in result)
             {
                 Console.WriteLine($"Mapped Application {dto.Id}: Status = '{dto.Status}'");
@@ -211,7 +225,8 @@ namespace GraduationProjectManagement.Services
                 },
                 AppliedAt = application.AppliedAt,
                 ReviewedAt = application.ReviewedAt,
-                ReviewNotes = application.ReviewNotes
+                ReviewNotes = application.ReviewNotes,
+                StudentNote = application.StudentNote
             };
         }
 

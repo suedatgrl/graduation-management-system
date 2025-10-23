@@ -24,7 +24,8 @@ const StudentDashboard = () => {
   const [hasActiveApplication, setHasActiveApplication] = useState(false);
   const [activeApplication, setActiveApplication] = useState(null);
   
-  // YENİ STATE'LER
+
+    const [deadlineInfo, setDeadlineInfo] = useState(null);
   const [deadline, setDeadline] = useState(null);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
 
@@ -117,6 +118,15 @@ const StudentDashboard = () => {
     }
   };
 
+
+    const fetchDeadlineInfo = async () => {
+    try {
+      const info = await notificationService.getDeadlineInfo();
+      setDeadlineInfo(info);
+    } catch (error) {
+      console.error('Deadline bilgisi alınamadı:', error);
+    }
+  };
   const filterProjects = () => {
     if (!searchTerm) {
       setFilteredProjects(projects);
@@ -152,24 +162,24 @@ const StudentDashboard = () => {
     setShowApplicationModal(true);
   };
 
-  const handleApplicationSubmit = async (applicationData) => {
-    try {
-      await projectService.applyToProject(applicationData.projectId);
-      setShowApplicationModal(false);
-      setSelectedProject(null);
-      await fetchData();
-      alert('Başvurunuz başarıyla gönderildi!');
-    } catch (error) {
-      console.error('Error submitting application:', error);
-      if (error.response?.status === 403) {
-        alert('Bu işlem için yetkiniz bulunmuyor.');
-      } else if (error.response?.status === 409) {
-        alert('Bu projeye zaten başvurdunuz.');
-      } else {
-        alert('Başvuru gönderilirken bir hata oluştu.');
-      }
+ const handleApplicationSubmit = async (applicationData) => {
+  try {
+    await projectService.applyToProject(applicationData.projectId, applicationData.studentNote);
+    setShowApplicationModal(false);
+    setSelectedProject(null);
+    await fetchData();
+    alert('Başvurunuz başarıyla gönderildi!');
+  } catch (error) {
+    console.error('Error submitting application:', error);
+    if (error.response?.status === 403) {
+      alert('Bu işlem için yetkiniz bulunmuyor.');
+    } else if (error.response?.status === 409) {
+      alert('Bu projeye zaten başvurdunuz.');
+    } else {
+      alert('Başvuru gönderilirken bir hata oluştu.');
     }
-  };
+  }
+};
 
   const handleTeacherClick = async (teacher) => {
     try {
@@ -740,6 +750,15 @@ const ApplicationDetailModal = ({ application, onClose }) => {
               })}
             </p>
           </div>
+
+          {application.studentNote && (
+  <div>
+    <h4 className="text-sm font-medium text-gray-900 mb-2">Başvuru Notunuz</h4>
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <p className="text-blue-800 whitespace-pre-wrap">{application.studentNote}</p>
+    </div>
+  </div>
+)}
 
           {application.reviewedAt && (
             <div>

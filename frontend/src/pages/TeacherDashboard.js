@@ -6,10 +6,9 @@ import CreateProjectModal from '../components/CreateProjectModal';
 import EditProjectModal from '../components/EditProjectModal';
 import ApplicationsModal from '../components/ApplicationsModal';
 import AllApplicationsModal from '../components/AllApplicationsModal'; 
-import ModalsForTeacher from '../components/ModalsForTeacher';  // YENİ IMPORT
+import ModalsForTeacher from '../components/ModalsForTeacher';  
 
-import { Plus, BookOpen, Users, Clock, CheckCircle, XCircle, Filter } from 'lucide-react';
-
+import { Plus, BookOpen, Users, Clock, CheckCircle, XCircle, Filter, Calendar, AlertTriangle } from 'lucide-react';
 const TeacherDashboard = () => {
   const { user } = useAuth();
   const [projects, setProjects] = useState([]);
@@ -25,10 +24,14 @@ const TeacherDashboard = () => {
 
   const [showProjectsModal, setShowProjectsModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', filterType: 'all' });
-
+ 
+   const [reviewDeadline, setReviewDeadline] = useState(null);
+  const [daysUntilReviewDeadline, setDaysUntilReviewDeadline] = useState(null);
+  const [isReviewDeadlinePassed, setIsReviewDeadlinePassed] = useState(false);
 
   useEffect(() => {
     fetchProjects();
+    fetchReviewDeadline();
   }, []);
 
   useEffect(() => {
@@ -40,6 +43,40 @@ const TeacherDashboard = () => {
       fetchAllApplications();
     }
   }, [projects]);
+
+  useEffect(() => {
+    if (reviewDeadline) {
+      const deadlineDate = new Date(reviewDeadline);
+      const now = new Date();
+      const diffTime = deadlineDate - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      setDaysUntilReviewDeadline(diffDays);
+      setIsReviewDeadlinePassed(now > deadlineDate);
+    }
+  }, [reviewDeadline]);
+
+
+   const fetchReviewDeadline = async () => {
+    try {
+      const response = await fetch('/api/admin/settings', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const settings = await response.json();
+        const reviewDeadlineSetting = settings.find(s => s.key === 'ReviewDeadline');
+        if (reviewDeadlineSetting && reviewDeadlineSetting.value) {
+          setReviewDeadline(reviewDeadlineSetting.value);
+        }
+      }
+    } catch (error) {
+      console.warn('Review deadline could not be loaded:', error);
+    }
+  };
+
 
   const fetchProjects = async () => {
     try {
@@ -146,6 +183,33 @@ const TeacherDashboard = () => {
     return { total, active, totalApplications, turkish, english };
   };
 
+    const getDeadlineStatusColor = () => {
+    if (isReviewDeadlinePassed) return 'bg-red-50 border-red-200';
+    if (daysUntilReviewDeadline <= 7) return 'bg-yellow-50 border-yellow-200';
+    return 'bg-green-50 border-green-200';
+  };
+
+  const getDeadlineTextColor = () => {
+    if (isReviewDeadlinePassed) return 'text-red-800';
+    if (daysUntilReviewDeadline <= 7) return 'text-yellow-800';
+    return 'text-green-800';
+  };
+
+  const getDeadlineIcon = () => {
+    if (isReviewDeadlinePassed) return <XCircle className="h-6 w-6 text-red-600" />;
+    if (daysUntilReviewDeadline <= 7) return <AlertTriangle className="h-6 w-6 text-yellow-600" />;
+    return <CheckCircle className="h-6 w-6 text-green-600" />;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+
   const stats = getProjectStats();
 
   if (loading) {
@@ -176,8 +240,57 @@ const TeacherDashboard = () => {
           </button>
         </div>
       </div>
+       {reviewDeadline && (
+        <div className={`rounded-lg shadow p-6 border-2 ${getDeadlineStatusColor()}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {getDeadlineIcon()}
+              <div>
+                <h3 className={`text-lg font-semibold ${getDeadlineTextColor()}`}>
+                  {isReviewDeadlinePassed 
+                    ? '🚫 Değerlendirme Süresi Sona Erdi' 
+                    : daysUntilReviewDeadline === 0
+                    ? '🚨 SON GÜN - Başvuru Değerlendirme'
+                    : daysUntilReviewDeadline <= 7
+                    ? `⚠️ Son ${daysUntilReviewDeadline} Gün - Başvuru Değerlendirme`
+                    : '✅ Değerlendirme Süresi Aktif'}
+                </h3>
+                <p className={`text-sm mt-1 ${getDeadlineTextColor()}`}>
+                  <strong>Son Değerlendirme Tarihi:</strong>
+                  <br />
+                  {new Date(reviewDeadline).toLocaleDateString('tr-TR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+                {isReviewDeadlinePassed && (
+                  <p className="text-sm text-red-700 mt-2 font-medium">
+                    ❌ Artık başvuruları onaylayamaz veya reddedemezsiniz.
+                  </p>
+                )}
+                {!isReviewDeadlinePassed && stats.pendingApplications > 0 && (
+                  <p className="text-sm mt-2 font-medium">
+                    📋 {stats.pendingApplications} bekleyen başvurunuz var!
+                  </p>
+                )}
+              </div>
+            </div>
+            {!isReviewDeadlinePassed && daysUntilReviewDeadline <= 7 && (
+              <div className="text-right">
+                <div className="text-4xl font-bold text-yellow-600">
+                  {daysUntilReviewDeadline}
+                </div>
+                <div className="text-sm text-yellow-700">Gün Kaldı</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
-      {/* Stats - sadece Toplam Başvuru kartı güncellenmiş */}
+      {/* Stats  */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {/* Toplam Proje */}
         <div 

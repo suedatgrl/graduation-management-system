@@ -32,12 +32,13 @@ namespace GraduationProjectManagement.Models
         public virtual Project? RelatedProject { get; set; }
         public virtual ProjectApplication? RelatedApplication { get; set; }
     }
-    
+
     public enum NotificationType
     {
         ApplicationApproved = 1,      // Başvuru onaylandı
         ApplicationRejected = 2,      // Başvuru reddedildi
         DeadlineWarning = 3,          // Son tarih uyarısı
-        QuotaAvailable = 4            // Kontenjan açıldı
+        QuotaAvailable = 4, // Kontenjan açıldı
+        ReviewDeadlineWarning = 5
     }
 }

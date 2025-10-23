@@ -16,6 +16,7 @@ namespace GraduationProjectManagement.Services
         Task<bool> CreateQuotaAlertAsync(int studentId, int projectId);
         Task<bool> RemoveQuotaAlertAsync(int studentId, int projectId);
         Task CheckAndNotifyQuotaAlertsAsync();
+        Task SendReviewDeadlineWarningsAsync(); 
         
         // Deadline Warning methods
         Task SendDeadlineWarningsAsync();

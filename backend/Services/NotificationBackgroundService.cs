@@ -19,11 +19,24 @@ namespace GraduationProjectManagement.Services.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("🚀 Notification Background Service BAŞLATILDI!");
-            Console.WriteLine("🚀 Notification Background Service BAŞLATILDI!");
+_logger.LogInformation("🚀 Notification Background Service BAŞLATILDI!");
+Console.WriteLine("🚀 Notification Background Service BAŞLATILDI!");
 
-            // İlk çalışmayı 10 saniye sonra yap
-            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+// Eğer şu an saat 09:00 ise gözden geçirme hatırlatmalarını hemen gönder
+var now = DateTime.Now;
+if (now.Hour == 9 && now.Minute == 0)
+{
+    using (var scope = _serviceProvider.CreateScope())
+    {
+        var notificationService = scope.ServiceProvider
+            .GetRequiredService<INotificationService>();
+
+        await notificationService.SendReviewDeadlineWarningsAsync();
+    }
+}
+
+// İlk çalışmayı 10 saniye sonra yap
+await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
             {

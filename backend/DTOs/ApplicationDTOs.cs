@@ -14,12 +14,15 @@ namespace GraduationProjectManagement.DTOs
         public DateTime? ReviewedAt { get; set; }
 
         public string? ReviewNotes { get; set; }
+        public string? StudentNote { get; set; } 
     }
     
     public class CreateApplicationDto
     {
         [Required]
         public int ProjectId { get; set; }
+
+        public string? StudentNote { get; set; }
         
 
     }

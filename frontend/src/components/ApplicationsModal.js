@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import projectService from '../services/projectService';
-import { X, User, Calendar, CheckCircle, XCircle, Clock, Eye, MessageCircle } from 'lucide-react';
-
-const ApplicationsModal = ({ project, onClose }) => {
+import { X, User,MessageCircle, Mail,Eye, Calendar, CheckCircle, XCircle, Clock, FileText, AlertCircle } from 'lucide-react';
+const ApplicationsModal = ({ project, onClose, isReviewDeadlinePassed = false }) => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -32,7 +31,15 @@ const ApplicationsModal = ({ project, onClose }) => {
     try {
       setReviewLoading(true);
       console.log('Reviewing application:', applicationId, 'with status:', status);
-      
+      if (isReviewDeadlinePassed) {
+      alert('⚠️ Son değerlendirme tarihi geçmiştir. Artık başvuruları onaylayamaz veya reddedemezsiniz.');
+      return;
+    }
+    
+    if (status !== 'Pending') {
+      alert('Bu başvuru zaten değerlendirilmiş.');
+      return;
+    }
       await projectService.reviewApplication(applicationId, status, reviewNotes);
       await fetchApplications(); // Refresh applications
       setSelectedApplication(null);
@@ -161,6 +168,19 @@ const isPendingStatus = (status) => {
             <X className="h-6 w-6" />
           </button>
         </div>
+         {isReviewDeadlinePassed && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-red-800">Değerlendirme Süresi Sona Erdi</p>
+                  <p className="text-sm text-red-700 mt-1">
+                    Son değerlendirme tarihi geçmiştir. Artık başvuruları onaylayamaz veya reddedemezsiniz.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
         {/* Applications List */}
         <div className="p-6 overflow-y-auto max-h-[70vh]">
@@ -204,6 +224,8 @@ const isPendingStatus = (status) => {
                         minute: '2-digit'
                       })}</span>
                     </div>
+
+                    
                     {application.reviewedAt && (
                       <div className="flex items-center text-sm text-gray-500">
                         <Calendar className="h-4 w-4 mr-2" />
@@ -217,6 +239,20 @@ const isPendingStatus = (status) => {
                       </div>
                     )}
                   </div>
+
+                  {application.studentNote && (
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-start space-x-2">
+                            <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-xs font-medium text-blue-900 mb-1">Öğrenci Notu:</p>
+                              <p className="text-sm text-blue-800 whitespace-pre-wrap">
+                                {application.studentNote}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                   {application.reviewNotes && (
                     <div className="mb-4">
@@ -341,6 +377,21 @@ const ReviewApplicationModal = ({ application, onSubmit, onClose, loading }) => 
             <p className="text-sm text-gray-600">
               <strong>{application.student?.firstName} {application.student?.lastName}</strong> tarafından yapılan başvuruyu değerlendirin.
             </p>
+
+            {application.studentNote && (
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-blue-900 mb-1">Öğrenci Notu:</p>
+                  <p className="text-sm text-blue-800 whitespace-pre-wrap">
+                    {application.studentNote}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+       
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

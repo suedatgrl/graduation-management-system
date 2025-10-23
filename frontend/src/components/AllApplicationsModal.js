@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import projectService from '../services/projectService';
-import { X, User, Calendar, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
-
-const AllApplicationsModal = ({ projects, onClose }) => {
-  const [allApplicationsData, setAllApplicationsData] = useState([]);
+import { X, User,Eye, Mail, Calendar, CheckCircle, XCircle, Clock, FileText, AlertCircle } from 'lucide-react';
+const AllApplicationsModal = ({ projects, onClose, isReviewDeadlinePassed = false }) => {  const [allApplicationsData, setAllApplicationsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -38,6 +36,15 @@ const AllApplicationsModal = ({ projects, onClose }) => {
   const handleReviewApplication = async (applicationId, status, reviewNotes = '') => {
     try {
       setReviewLoading(true);
+      if (isReviewDeadlinePassed) {
+      alert('⚠️ Son değerlendirme tarihi geçmiştir. Artık başvuruları onaylayamaz veya reddedemezsiniz.');
+      return;
+    }
+    
+    if (status !== 'Pending') {
+      alert('Bu başvuru zaten değerlendirilmiş.');
+      return;
+    }
       await projectService.reviewApplication(applicationId, status, reviewNotes);
       await fetchAllApplications(); // Refresh applications
       setSelectedApplication(null);
@@ -164,6 +171,19 @@ const AllApplicationsModal = ({ projects, onClose }) => {
                             {application.student?.studentNumber && (
                               <p className="text-xs text-gray-500">#{application.student?.studentNumber}</p>
                             )}
+                            {application.studentNote && (
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-blue-900 mb-1">Öğrenci Notu:</p>
+                  <p className="text-sm text-blue-800 whitespace-pre-wrap">
+                    {application.studentNote}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">

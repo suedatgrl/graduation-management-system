@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { X, Send } from 'lucide-react';
-
+import { X, Send, FileText } from 'lucide-react';
 const ApplicationModal = ({ project, onSubmit, onClose }) => {
 
   const [loading, setLoading] = useState(false);
-
+  const [studentNote, setStudentNote] = useState('');
   const handleSubmit = async (e) => {
     e.preventDefault();
  
@@ -13,6 +12,7 @@ const ApplicationModal = ({ project, onSubmit, onClose }) => {
       setLoading(true);
       await onSubmit({ 
         projectId: project.id,
+        studentNote: studentNote
  
       });
     } catch (error) {
@@ -52,7 +52,23 @@ const ApplicationModal = ({ project, onSubmit, onClose }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
+            <div>
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <FileText className="h-4 w-4 mr-2" />
+              Başvuru Notunuz (Opsiyonel)
+            </label>
+            <textarea
+              value={studentNote}
+              onChange={(e) => setStudentNote(e.target.value)}
+              rows="4"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              placeholder="Projeye neden başvurmak istediğinizi, ilgi alanlarınızı veya özel becerilerinizi buraya yazabilirsiniz..."
+              maxLength="500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {studentNote.length}/500 karakter
+            </p>
+          </div>
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
             <button
               type="button"

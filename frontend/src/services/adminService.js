@@ -101,6 +101,15 @@ class AdminService {
     return response.data;
   }
 
+  async updateReviewDeadline(newDeadline) {
+  const response = await axios.put(
+    `${API_URL}/admin/settings/ReviewDeadline`,
+    { value: newDeadline },
+    { headers: this.getAuthHeaders() }
+  );
+  return response.data;
+}
+
     async updateUser(userId, userData) {
     const response = await axios.put(
       `${API_URL}/admin/users/${userId}`,

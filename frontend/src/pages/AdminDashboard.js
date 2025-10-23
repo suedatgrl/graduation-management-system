@@ -6,6 +6,7 @@ import ExcelUploadModal from '../components/ExcelUploadModal';
 import StudentsListModal from '../components/StudentsListModal';
 import TeachersListModal from '../components/TeachersListModal';
 import EditUserModal from '../components/EditUserModal';
+import ReviewDeadlineUpdateModal from '../components/ReviewDeadlineUpdateModal';
 import PendingApplicationsModal from '../components/PendingApplicationsModal';  
 import DeadlineUpdateModal from '../components/DeadlineUpdateModal';  
 import ProjectsListModal from '../components/ProjectsListModal';
@@ -21,13 +22,14 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
+   const [showReviewDeadlineModal, setShowReviewDeadlineModal] = useState(false);
   const [showStudentsModal, setShowStudentsModal] = useState(false);
   const [showTeachersModal, setShowTeachersModal] = useState(false);
   const [showProjectsModal, setShowProjectsModal] = useState(false);
   const [studentsData, setStudentsData] = useState([]);
   const [teachersData, setTeachersData] = useState([]);
   const [projectsData, setProjectsData] = useState([]);
-
+const [reviewDeadline, setReviewDeadline] = useState(null)
   const [showPendingApplicationsModal, setShowPendingApplicationsModal] = useState(false);
   const [showDeadlineModal, setShowDeadlineModal] = useState(false);
   const [pendingApplications, setPendingApplications] = useState([]);
@@ -55,9 +57,15 @@ const [selectedUser, setSelectedUser] = useState(null);
       setStats(statsData);
       setUsers(usersData);
 
-      const deadlineSetting = settingsData.find(s => s.key === 'ApplicationDeadline');
+         const deadlineSetting = settingsData.find(s => s.key === 'ApplicationDeadline');
       if (deadlineSetting) {
         setDeadline(deadlineSetting.value);
+      }
+
+      //  ReviewDeadline'ı al
+      const reviewDeadlineSetting = settingsData.find(s => s.key === 'ReviewDeadline');
+      if (reviewDeadlineSetting) {
+        setReviewDeadline(reviewDeadlineSetting.value);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -65,6 +73,8 @@ const [selectedUser, setSelectedUser] = useState(null);
       setLoading(false);
     }
   };
+
+  
 
   const filterUsers = () => {
     let filtered = users;
@@ -110,6 +120,19 @@ const [selectedUser, setSelectedUser] = useState(null);
       throw error;
     }
   };
+
+    const handleReviewDeadlineUpdate = async (newDeadline) => {
+    try {
+      await adminService.updateReviewDeadline(newDeadline);
+      setReviewDeadline(newDeadline);
+      setShowReviewDeadlineModal(false);
+      alert('Son değerlendirme tarihi başarıyla güncellendi!');
+    } catch (error) {
+      console.error('Error updating review deadline:', error);
+      alert('Tarih güncellenirken bir hata oluştu.');
+    }
+  };
+
 
   const handleCreateUser = async (userData) => {
     try {
@@ -294,36 +317,77 @@ const [selectedUser, setSelectedUser] = useState(null);
         <div className="p-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="h-6 w-6 text-blue-600" />
-                    <div>
-                      <h3 className="text-sm font-medium text-blue-900">
-                        Proje Başvuru Son Tarihi
-                      </h3>
-                      <p className="text-lg font-bold text-blue-700 mt-1">
-                        {deadline
-                          ? new Date(deadline).toLocaleDateString('tr-TR', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
-                          : 'Belirlenmemiş'}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowDeadlineModal(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                  >
-                    <Calendar className="h-4 w-4" />
-                    <span>Son Tarihi Değiştir</span>
-                  </button>
-                </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Application Deadline */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Calendar className="h-6 w-6 text-blue-600" />
+              <div>
+                <h3 className="text-sm font-medium text-blue-900">
+                  Proje Başvuru Son Tarihi
+                </h3>
+                <p className="text-lg font-bold text-blue-700 mt-1">
+                  {deadline
+                    ? new Date(deadline).toLocaleDateString('tr-TR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    : 'Belirlenmemiş'}
+                </p>
               </div>
+            </div>
+            <button
+              onClick={() => setShowDeadlineModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            >
+              <Calendar className="h-4 w-4" />
+              <span>Güncelle</span>
+            </button>
+          </div>
+        </div>
+
+        {/* YENİ: Review Deadline */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Clock className="h-6 w-6 text-purple-600" />
+              <div>
+                <h3 className="text-sm font-medium text-purple-900">
+                  Son Değerlendirme Tarihi
+                </h3>
+                <p className="text-lg font-bold text-purple-700 mt-1">
+                  {reviewDeadline
+                    ? new Date(reviewDeadline).toLocaleDateString('tr-TR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    : 'Belirlenmemiş'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowReviewDeadlineModal(true)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+            >
+              <Clock className="h-4 w-4" />
+              <span>Güncelle</span>
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Öğretmenlerin başvuruları onaylayıp reddedebileceği son tarih
+          </p>
+        </div>
+      </div>
+
+
+              
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div 
@@ -571,6 +635,14 @@ const [selectedUser, setSelectedUser] = useState(null);
         <StudentsListModal
           students={studentsData}
           onClose={() => setShowStudentsModal(false)}
+        />
+      )}
+
+        {showReviewDeadlineModal && (
+        <ReviewDeadlineUpdateModal
+          currentDeadline={reviewDeadline}
+          onUpdate={handleReviewDeadlineUpdate}
+          onClose={() => setShowReviewDeadlineModal(false)}
         />
       )}
 

@@ -9,5 +9,6 @@ namespace GraduationProjectManagement.Services
         Task SendNotificationEmailAsync(Notification notification);
         Task SendQuotaAlertEmailAsync(User student, Project project);
         Task SendDeadlineWarningEmailAsync(User student, int daysLeft);
+        Task SendReviewDeadlineWarningEmailAsync(User teacher, int daysRemaining, int pendingCount);
     }
 }
