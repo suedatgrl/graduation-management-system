@@ -8,8 +8,9 @@ namespace GraduationProjectManagement.Mappings
     {
         public MappingProfile()
         {
-            // User mappings
-            CreateMap<User, UserDto>();
+            // User mappings 
+            CreateMap<User, UserDto>();  // AutoMapper otomatik olarak aynı isimdeki property'leri map eder
+            
             CreateMap<RegisterRequestDto, User>()
                 .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -30,15 +31,12 @@ namespace GraduationProjectManagement.Mappings
 
             // Application mappings 
             CreateMap<ProjectApplication, ApplicationDto>()
-    .ForMember(dest => dest.Status, opt => opt.MapFrom(src => 
-        src.Status == ApplicationStatus.Pending ? "Pending" :
-        src.Status == ApplicationStatus.Approved ? "Approved" : "Rejected"))
-    .ForMember(dest => dest.StudentNote, opt => opt.MapFrom(src => src.StudentNote)); 
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => 
+                    src.Status == ApplicationStatus.Pending ? "Pending" :
+                    src.Status == ApplicationStatus.Approved ? "Approved" : "Rejected"))
+                .ForMember(dest => dest.StudentNote, opt => opt.MapFrom(src => src.StudentNote)); 
 
-
-
-            
-             CreateMap<User, TeacherWithQuotaDto>()
+            CreateMap<User, TeacherWithQuotaDto>()
                 .ForMember(dest => dest.UsedQuota, 
                     opt => opt.MapFrom(src => src.Projects != null 
                         ? src.Projects.SelectMany(p => p.Applications)
@@ -64,12 +62,6 @@ namespace GraduationProjectManagement.Mappings
                 .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));
-        
         }
-
-
-
-
-       
     }
 }

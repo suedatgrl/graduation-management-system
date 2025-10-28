@@ -101,6 +101,32 @@ class AdminService {
     return response.data;
   }
 
+  async deleteProject(projectId) {
+  const response = await axios.delete(
+    `${API_URL}/admin/projects/${projectId}`,
+    { headers: this.getAuthHeaders() }
+  );
+  return response.data;
+}
+
+async updateProject(projectId, projectData) {
+  const response = await axios.put(
+    `${API_URL}/admin/projects/${projectId}`,
+    projectData,
+    { headers: this.getAuthHeaders() }
+  );
+  return response.data;
+}
+
+async reviewApplication(applicationId, status, reviewNotes) {
+  const response = await axios.put(
+    `${API_URL}/admin/applications/${applicationId}/review`,
+    { status, reviewNotes },
+    { headers: this.getAuthHeaders() }
+  );
+  return response.data;
+}
+
   async updateReviewDeadline(newDeadline) {
   const response = await axios.put(
     `${API_URL}/admin/settings/ReviewDeadline`,

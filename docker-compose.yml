@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: graduation-db
+    restart: always
+    environment:
+      POSTGRES_DB: grad
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"    # host 5433 -> container 5432 (host erişimi için)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - graduation-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: graduation-backend
+    restart: always
+    ports:
+      - "5001:5000"    # host 5001 -> container 5000
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+      # ÖNEMLİ: container içinden DB'ye bağlanırken PORT = 5432 olmalı
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=grad;Username=postgres;Password=postgres
+      - JwtSettings__SecretKey=your-super-secret-jwt-key-minimum-32-characters-long
+      - JwtSettings__Issuer=GraduationProjectManagement
+      - JwtSettings__Audience=GraduationProjectManagement
+      - JwtSettings__ExpirationMinutes=60
+    depends_on:
+      - db
+    networks:
+      - graduation-network
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=http://localhost:5001/api   # build-time arg (bunu Dockerfile'da kullanacağız)
+    container_name: graduation-frontend
+    restart: always
+    ports:
+      - "3001:80"   # host 3001 -> nginx:80
+    environment:
+      - REACT_APP_API_URL=http://localhost:5001/api   # runtime env (tarayıcı çağrıları için)
+    depends_on:
+      - backend
+    networks:
+      - graduation-network
+
+volumes:
+  postgres_data:
+
+networks:
+  graduation-network:
+    driver: bridge

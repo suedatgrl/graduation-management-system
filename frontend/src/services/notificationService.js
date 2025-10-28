@@ -100,6 +100,23 @@ class NotificationService {
   );
   return response.data;
 }
+
+async testReviewDeadlineWarnings() {
+  const response = await axios.post(
+    `${API_URL}/notifications/test/review-deadline-warnings`,
+    {},
+    { headers: this.getAuthHeaders() }
+  );
+  return response.data;
+}
+
+async getReviewDeadlineInfo() {
+  const response = await axios.get(
+    `${API_URL}/notifications/test/review-deadline-info`,
+    { headers: this.getAuthHeaders() }
+  );
+  return response.data;
+}
 }
 
 export default new NotificationService();

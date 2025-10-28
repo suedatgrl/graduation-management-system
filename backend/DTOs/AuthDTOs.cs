@@ -51,10 +51,12 @@ namespace GraduationProjectManagement.DTOs
         public string Email { get; set; } = string.Empty;
         public UserRole Role { get; set; }
         public string? StudentNumber { get; set; }
-        public string? TcIdentityNumber { get; set; }
+         public string? SicilNumber { get; set; }
         public string? CourseCode { get; set; }
 
         public int? TotalQuota { get; set; }
+        public bool MustChangePassword { get; set; }
+        public DateTime? LastPasswordChangeDate { get; set; }
     }
     
         public class TeacherWithQuotaDto

@@ -7,6 +7,7 @@ import EditProjectModal from '../components/EditProjectModal';
 import ApplicationsModal from '../components/ApplicationsModal';
 import AllApplicationsModal from '../components/AllApplicationsModal'; 
 import ModalsForTeacher from '../components/ModalsForTeacher';  
+import AssignStudentsModal from '../components/AssignStudentsModal';
 
 import { Plus, BookOpen, Users, Clock, CheckCircle, XCircle, Filter, Calendar, AlertTriangle } from 'lucide-react';
 const TeacherDashboard = () => {
@@ -21,7 +22,8 @@ const TeacherDashboard = () => {
   const [languageFilter, setLanguageFilter] = useState('all');
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [allApplications, setAllApplications] = useState([]);
-
+   const [showAssignModal, setShowAssignModal] = useState(false);
+const [selectedProjectForAssign, setSelectedProjectForAssign] = useState(null);
   const [showProjectsModal, setShowProjectsModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', filterType: 'all' });
  
@@ -163,6 +165,18 @@ const TeacherDashboard = () => {
     }
   };
 
+  const handleAssignStudents = (project) => {
+  setSelectedProjectForAssign(project);
+  setShowAssignModal(true);
+};
+
+const handleAssignSuccess = async () => {
+  await fetchProjects(); // Projeleri yenile
+  await fetchAllApplications(); // Başvuruları yenile
+  setShowAssignModal(false);
+  setSelectedProjectForAssign(null);
+};
+
    const openProjectsModal = (title, filterType) => {
     setModalConfig({ title, filterType });
     setShowProjectsModal(true);
@@ -229,6 +243,7 @@ const TeacherDashboard = () => {
             <h1 className="text-2xl font-bold text-gray-900">
               Hoş geldiniz, {user?.firstName} {user?.lastName}
             </h1>
+            
             <p className="text-gray-600 mt-2">Projelerinizi yönetin ve başvuruları inceleyin.</p>
           </div>
           <button
@@ -398,6 +413,7 @@ const TeacherDashboard = () => {
                   onViewApplications={handleViewApplications}
                   onEdit={handleEditProject}
                   onDelete={handleDeleteProject}
+                  onAssignStudents={handleAssignStudents}
                   userRole="teacher"
                 />
               ))}
@@ -458,6 +474,18 @@ const TeacherDashboard = () => {
           onClose={() => setShowProjectsModal(false)}
         />
       )}
+
+      {showAssignModal && selectedProjectForAssign && (
+  <AssignStudentsModal
+    isOpen={showAssignModal}
+    onClose={() => {
+      setShowAssignModal(false);
+      setSelectedProjectForAssign(null);
+    }}
+    project={selectedProjectForAssign}
+    onSuccess={handleAssignSuccess}
+  />
+)}
     </div>
   );
 };

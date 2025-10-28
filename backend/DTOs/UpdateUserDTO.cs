@@ -25,6 +25,6 @@ namespace GraduationProjectManagement.DTOs
 
         // Opsiyonel
         [StringLength(11, MinimumLength = 11)]
-        public string? TcIdentityNumber { get; set; }
+        public string? SicilNumber { get; set; }
     }
 }

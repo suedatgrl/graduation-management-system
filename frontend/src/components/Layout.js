@@ -168,7 +168,7 @@ const Layout = ({ children }) => {
             
             <div className="ml-4 flex items-center md:ml-6">
               <div className="flex items-center space-x-3">
-                <div>{user?.role === 1 && <NotificationBell />}</div>
+                <div><NotificationBell /></div>
                  <div className={`p-2 rounded-full ${getRoleColor(user?.role)}`}>
                   
                   <RoleIcon className="h-5 w-5" />

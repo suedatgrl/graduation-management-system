@@ -26,5 +26,9 @@ namespace GraduationProjectManagement.Services
         Task<IEnumerable<UserDto>> GetStudentsAsync();
         Task<IEnumerable<UserDto>> GetTeachersAsync();
         Task<IEnumerable<ProjectDto>> GetProjectsAsync();
+
+        Task<ProjectDto> UpdateProjectAsAdminAsync(int projectId, UpdateProjectDto dto);
+        Task<bool> DeleteProjectAsAdminAsync(int projectId);
+        Task<bool> ReviewApplicationAsAdminAsync(int applicationId, ApplicationStatus status, string? reviewNotes);
     }
 }

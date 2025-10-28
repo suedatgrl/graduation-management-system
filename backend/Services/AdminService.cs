@@ -105,12 +105,7 @@ namespace GraduationProjectManagement.Services
                 throw new InvalidOperationException("Bu email ile kayıtlı kullanıcı zaten mevcut.");
             }
 
-            // Check if TC number already exists
-            if (await _context.Users.AnyAsync(u => u.TcIdentityNumber == studentDto.TcIdentityNumber))
-            {
-                throw new InvalidOperationException("Bu TC kimlik numarası ile kayıtlı kullanıcı zaten mevcut.");
-            }
-
+    
             // Check if school number already exists
             if (await _context.Users.AnyAsync(u => u.StudentNumber == studentDto.StudentNumber))
             {
@@ -119,7 +114,7 @@ namespace GraduationProjectManagement.Services
 
             // Generate username (school number) and password (first 8 digits of TC number)
             var username = studentDto.StudentNumber;
-            var password = studentDto.TcIdentityNumber.Substring(0, 8);
+              var password = studentDto.StudentNumber;
 
             var user = new User
             {
@@ -128,11 +123,12 @@ namespace GraduationProjectManagement.Services
                 Email = studentDto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                 Role = UserRole.Student,
-                TcIdentityNumber = studentDto.TcIdentityNumber,
                 StudentNumber = studentDto.StudentNumber, // Using school number as student number
                 CourseCode = studentDto.CourseCode,
                 CreatedAt = DateTime.UtcNow,
-                IsActive = true
+                IsActive = true,
+                MustChangePassword = true,  
+                LastPasswordChangeDate = null 
             };
 
             _context.Users.Add(user);
@@ -149,19 +145,19 @@ namespace GraduationProjectManagement.Services
                 throw new InvalidOperationException("Bu email ile kayıtlı kullanıcı zaten mevcut.");
             }
 
-            if (await _context.Users.AnyAsync(u => u.TcIdentityNumber == teacherDto.TcIdentityNumber))
+            if (await _context.Users.AnyAsync(u => u.SicilNumber == teacherDto.SicilNumber))
             {
-                throw new InvalidOperationException("Bu TC kimlik numarası ile kayıtlı kullanıcı zaten mevcut.");
+                throw new InvalidOperationException("Bu Sicil numarası ile kayıtlı kullanıcı zaten mevcut.");
             }
 
-            // Validate TC number length
-            if (string.IsNullOrEmpty(teacherDto.TcIdentityNumber) || teacherDto.TcIdentityNumber.Length < 8)
+            // Validate Sicil number length
+            if (string.IsNullOrEmpty(teacherDto.SicilNumber) || teacherDto.SicilNumber.Length < 8)
             {
-                throw new InvalidOperationException("Geçersiz TC kimlik numarası.");
+                throw new InvalidOperationException("Geçersiz Sicil numarası.");
             }
 
-            // Generate password (first 8 digits of TC number)
-            var password = teacherDto.TcIdentityNumber.Substring(0, 8);
+            // Generate password (first 8 digits of Sicil No)
+            var password = teacherDto.SicilNumber.Substring(0, 8);
 
             var user = new User
             {
@@ -170,7 +166,7 @@ namespace GraduationProjectManagement.Services
                 Email = teacherDto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                 Role = UserRole.Teacher,
-                TcIdentityNumber = teacherDto.TcIdentityNumber,
+                SicilNumber = teacherDto.SicilNumber,
                 TotalQuota = teacherDto.TotalQuota,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
@@ -230,25 +226,19 @@ namespace GraduationProjectManagement.Services
                                 var firstName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
                                 var lastName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
                                 var email = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
-                                var tcNumber = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
                                 var studentNumber = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
                                 var courseCode = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
 
                                 // Validate required fields
                                 if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || 
-                                    string.IsNullOrEmpty(email) || string.IsNullOrEmpty(tcNumber) || 
+                                    string.IsNullOrEmpty(email)  ||
                                     string.IsNullOrEmpty(studentNumber))
                                 {
                                     errorMessages.Add($"Satır {row}: Eksik bilgi");
                                     continue;
                                 }
 
-                                // Validate TC number
-                                if (tcNumber.Length != 11 || !tcNumber.All(char.IsDigit))
-                                {
-                                    errorMessages.Add($"Satır {row}: Geçersiz TC kimlik numarası");
-                                    continue;
-                                }
+                            
 
                                 // Check duplicates in database
                                 if (await _context.Users.AnyAsync(u => u.Email == email))
@@ -257,11 +247,7 @@ namespace GraduationProjectManagement.Services
                                     continue;
                                 }
 
-                                if (await _context.Users.AnyAsync(u => u.TcIdentityNumber == tcNumber))
-                                {
-                                    errorMessages.Add($"Satır {row}: TC kimlik numarası zaten kayıtlı");
-                                    continue;
-                                }
+                                
 
                                 if (await _context.Users.AnyAsync(u => u.StudentNumber == studentNumber))
                                 {
@@ -270,13 +256,13 @@ namespace GraduationProjectManagement.Services
                                 }
 
                                 // Check duplicates in current batch
-                                if (users.Any(u => u.Email == email || u.TcIdentityNumber == tcNumber || u.StudentNumber == studentNumber))
+                                if (users.Any(u => u.Email == email  || u.StudentNumber == studentNumber))
                                 {
                                     errorMessages.Add($"Satır {row}: Excel içinde tekrarlanan bilgi");
                                     continue;
                                 }
 
-                                var password = tcNumber.Substring(0, 8);
+                                var password = studentNumber;
                                 var user = new User
                                 {
                                     FirstName = firstName,
@@ -284,11 +270,12 @@ namespace GraduationProjectManagement.Services
                                     Email = email,
                                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                                     Role = UserRole.Student,
-                                    TcIdentityNumber = tcNumber,
                                     StudentNumber = studentNumber,
                                     CourseCode = courseCode,
                                     CreatedAt = DateTime.UtcNow,
-                                    IsActive = true
+                                    IsActive = true,
+                                    MustChangePassword = true, 
+                                    LastPasswordChangeDate = null 
                                 };
                                 users.Add(user);
                             }
@@ -297,23 +284,18 @@ namespace GraduationProjectManagement.Services
                                 var firstName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
                                 var lastName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
                                 var email = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
-                                var tcNumber = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
-                                var totalQuotaStr = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
+                                var sicilNumber = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
+                                var totalQuotaStr = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
 
                                 // Validate required fields
                                 if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || 
-                                    string.IsNullOrEmpty(email) || string.IsNullOrEmpty(tcNumber))
+                                    string.IsNullOrEmpty(email) || string.IsNullOrEmpty(sicilNumber))
                                 {
                                     errorMessages.Add($"Satır {row}: Eksik bilgi");
                                     continue;
                                 }
 
-                                // Validate TC number
-                                if (tcNumber.Length != 11 || !tcNumber.All(char.IsDigit))
-                                {
-                                    errorMessages.Add($"Satır {row}: Geçersiz TC kimlik numarası");
-                                    continue;
-                                }
+                               
 
                                 // Check duplicates in database
                                 if (await _context.Users.AnyAsync(u => u.Email == email))
@@ -322,14 +304,14 @@ namespace GraduationProjectManagement.Services
                                     continue;
                                 }
 
-                                if (await _context.Users.AnyAsync(u => u.TcIdentityNumber == tcNumber))
+                                if (await _context.Users.AnyAsync(u => u.SicilNumber == sicilNumber))
                                 {
-                                    errorMessages.Add($"Satır {row}: TC kimlik numarası zaten kayıtlı");
+                                    errorMessages.Add($"Satır {row}: Sicil numarası zaten kayıtlı");
                                     continue;
                                 }
 
                                 // Check duplicates in current batch
-                                if (users.Any(u => u.Email == email || u.TcIdentityNumber == tcNumber))
+                                if (users.Any(u => u.Email == email || u.SicilNumber == sicilNumber))
                                 {
                                     errorMessages.Add($"Satır {row}: Excel içinde tekrarlanan bilgi");
                                     continue;
@@ -349,7 +331,7 @@ namespace GraduationProjectManagement.Services
                                     }
                                 }
 
-                                var password = tcNumber.Substring(0, 8);
+                                var password = sicilNumber.Substring(0, 8);
                                 var user = new User
                                 {
                                     FirstName = firstName,
@@ -357,7 +339,7 @@ namespace GraduationProjectManagement.Services
                                     Email = email,
                                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                                     Role = UserRole.Teacher,
-                                    TcIdentityNumber = tcNumber,
+                                    SicilNumber = sicilNumber,
                                     TotalQuota = totalQuota,
                                     CreatedAt = DateTime.UtcNow,
                                     IsActive = true
@@ -548,16 +530,16 @@ namespace GraduationProjectManagement.Services
     }
 
     // TC Kimlik No güncellemesi
-    if (!string.IsNullOrEmpty(dto.TcIdentityNumber) && dto.TcIdentityNumber.Length == 11)
+    if (!string.IsNullOrEmpty(dto.SicilNumber) && dto.SicilNumber.Length == 11)
     {
-        if (user.TcIdentityNumber != dto.TcIdentityNumber)
+        if (user.SicilNumber != dto.SicilNumber)
         {
-            var tcExists = await _context.Users.AnyAsync(u => u.TcIdentityNumber == dto.TcIdentityNumber && u.Id != userId);
-            if (tcExists)
+            var sicilExists = await _context.Users.AnyAsync(u => u.SicilNumber == dto.SicilNumber && u.Id != userId);
+            if (sicilExists)
             {
-                throw new InvalidOperationException("Bu TC kimlik numarası başka bir kullanıcı tarafından kullanılıyor.");
+                throw new InvalidOperationException("Bu sicil numarası başka bir kullanıcı tarafından kullanılıyor.");
             }
-            user.TcIdentityNumber = dto.TcIdentityNumber;
+            user.SicilNumber = dto.SicilNumber;
         }
     }
 
@@ -565,7 +547,81 @@ namespace GraduationProjectManagement.Services
     
     return _mapper.Map<UserDto>(user);
 }
-  
+  public async Task<ProjectDto> UpdateProjectAsAdminAsync(int projectId, UpdateProjectDto dto)
+{
+    var project = await _context.Projects
+        .Include(p => p.Teacher)
+        .Include(p => p.Applications)
+        .FirstOrDefaultAsync(p => p.Id == projectId);
+
+    if (project == null)
+        throw new InvalidOperationException("Proje bulunamadı.");
+
+    project.Title = dto.Title;
+    project.Description = dto.Description;
+    project.Details = dto.Details;
+    project.MaxStudents = dto.MaxStudents;
+    project.IsActive = dto.IsActive;
+
+    await _context.SaveChangesAsync();
+
+    return _mapper.Map<ProjectDto>(project);
+}
+
+public async Task<bool> DeleteProjectAsAdminAsync(int projectId)
+{
+    var project = await _context.Projects.FindAsync(projectId);
+    
+    if (project == null)
+        return false;
+
+    // Başvuruları da sil (cascade olabilir ama garantiye alalım)
+    var applications = await _context.ProjectApplications
+        .Where(a => a.ProjectId == projectId)
+        .ToListAsync();
+    
+    _context.ProjectApplications.RemoveRange(applications);
+    _context.Projects.Remove(project);
+    
+    await _context.SaveChangesAsync();
+    return true;
+}
+
+public async Task<bool> ReviewApplicationAsAdminAsync(int applicationId, ApplicationStatus status, string? reviewNotes)
+{
+    var application = await _context.ProjectApplications
+        .Include(a => a.Project)
+        .FirstOrDefaultAsync(a => a.Id == applicationId);
+
+    if (application == null)
+        return false;
+
+    // Onaylama için kontenjan kontrolü
+    if (status == ApplicationStatus.Approved)
+    {
+        var currentApproved = await _context.ProjectApplications
+            .CountAsync(a => a.ProjectId == application.ProjectId && 
+                           a.Status == ApplicationStatus.Approved);
+
+        if (currentApproved >= application.Project.MaxStudents)
+        {
+            throw new InvalidOperationException("Proje kontenjanı doldu.");
+        }
+    }
+
+    application.Status = status;
+    application.ReviewedAt = DateTime.UtcNow;
+    application.ReviewNotes = reviewNotes;
+
+    await _context.SaveChangesAsync();
+
+    return true;
+}
+
+
+
+
+
 
 
     }

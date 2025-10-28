@@ -9,7 +9,7 @@ const EditUserModal = ({ user, onSubmit, onClose }) => {
     studentNumber: user.studentNumber || '',
     courseCode: user.courseCode || '',
     totalQuota: user.totalQuota || 10,
-    tcIdentityNumber: user.tcIdentityNumber || ''
+    sicilNumber: user.sicilNumber || ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -228,16 +228,16 @@ const EditUserModal = ({ user, onSubmit, onClose }) => {
           {/* TC Identity Number (Optional Update) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              TC Kimlik No (Opsiyonel)
+              Sicil No
             </label>
             <input
               type="text"
-              name="tcIdentityNumber"
-              value={formData.tcIdentityNumber}
+              name="sicilNumber"
+              value={formData.sicilNumber}
               onChange={handleChange}
               maxLength="11"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="11 haneli TC kimlik numarası"
+              placeholder="11 haneli Sicil numarası"
             />
             <p className="text-xs text-gray-500 mt-1">
               Değiştirmek istemiyorsanız boş bırakabilirsiniz

@@ -10,8 +10,8 @@ import ReviewDeadlineUpdateModal from '../components/ReviewDeadlineUpdateModal';
 import PendingApplicationsModal from '../components/PendingApplicationsModal';  
 import DeadlineUpdateModal from '../components/DeadlineUpdateModal';  
 import ProjectsListModal from '../components/ProjectsListModal';
-import { Users, BookOpen, Clock, Plus, Upload, Search, Trash2, ToggleLeft, ToggleRight, Calendar, Edit } from 'lucide-react';
-const AdminDashboard = () => {
+import EditProjectModal from '../components/EditProjectModal';
+import { Users, BookOpen, Clock, Plus, Upload, Search, Trash2, ToggleLeft, ToggleRight, Calendar, Edit } from 'lucide-react';const AdminDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({});
   const [users, setUsers] = useState([]);
@@ -36,6 +36,8 @@ const [reviewDeadline, setReviewDeadline] = useState(null)
   const [deadline, setDeadline] = useState(null);
   const [showEditUserModal, setShowEditUserModal] = useState(false);  // YENİ
 const [selectedUser, setSelectedUser] = useState(null); 
+const [showEditProjectModal, setShowEditProjectModal] = useState(false);
+const [selectedProjectForEdit, setSelectedProjectForEdit] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -107,6 +109,99 @@ const [selectedUser, setSelectedUser] = useState(null);
       alert('Bekleyen başvurular yüklenirken bir hata oluştu.');
     }
   };
+
+  const handleUpdateProject = async (projectData) => {
+  if (!selectedProjectForEdit) return;
+
+  try {
+    await adminService.updateProject(selectedProjectForEdit.id, projectData);
+    alert('Proje başarıyla güncellendi!');
+    setShowEditProjectModal(false);
+    setSelectedProjectForEdit(null);
+    
+    // Projeleri yeniden yükle
+    if (showProjectsModal) {
+      const data = await adminService.getProjects();
+      setProjectsData(data);
+    }
+    
+    await fetchData();
+  } catch (error) {
+    console.error('Error updating project:', error);
+    alert('Proje güncellenirken bir hata oluştu: ' + error.response?.data?.message);
+  }
+};
+  const handleDeleteProject = async (projectId) => {
+  if (!window.confirm('Bu projeyi silmek istediğinizden emin misiniz? Tüm başvurular da silinecektir!')) {
+    return;
+  }
+
+  try {
+    await adminService.deleteProject(projectId);
+    alert('Proje başarıyla silindi!');
+    setShowProjectsModal(false);
+    await fetchData();
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    alert('Proje silinirken bir hata oluştu: ' + error.response?.data?.message);
+  }
+};
+
+// Proje düzenleme (şimdilik basit - modal eklenebilir)
+const handleEditProject = (project) => {
+  setSelectedProjectForEdit(project);
+  setShowEditProjectModal(true);
+  
+};
+
+// Başvuru onaylama
+const handleApproveApplication = async (applicationId) => {
+  if (!window.confirm('Bu başvuruyu onaylamak istediğinizden emin misiniz?')) {
+    return;
+  }
+
+  try {
+    await adminService.reviewApplication(applicationId, 1, 'Admin tarafından onaylandı');
+    alert('Başvuru onaylandı!');
+    setShowPendingApplicationsModal(false);
+    await fetchData();
+    // Yeniden bekleyen başvuruları yükle
+    const applications = await adminService.getPendingApplications();
+    setPendingApplications(applications);
+    if (applications.length > 0) {
+      setShowPendingApplicationsModal(true);
+    }
+  } catch (error) {
+    console.error('Error approving application:', error);
+    alert('Başvuru onaylanırken bir hata oluştu: ' + error.response?.data?.message);
+  }
+};
+
+// Başvuru reddetme
+const handleRejectApplication = async (applicationId) => {
+  const reason = prompt('Reddetme sebebini giriniz (opsiyonel):');
+  if (reason === null) return; // İptal edildi
+
+  try {
+    await adminService.reviewApplication(
+      applicationId, 
+      2, // Rejected
+      reason || 'Admin tarafından reddedildi'
+    );
+    alert('Başvuru reddedildi!');
+    setShowPendingApplicationsModal(false);
+    await fetchData();
+    // Yeniden bekleyen başvuruları yükle
+    const applications = await adminService.getPendingApplications();
+    setPendingApplications(applications);
+    if (applications.length > 0) {
+      setShowPendingApplicationsModal(true);
+    }
+  } catch (error) {
+    console.error('Error rejecting application:', error);
+    alert('Başvuru reddedilirken bir hata oluştu: ' + error.response?.data?.message);
+  }
+};
 
 
   const handleDeadlineUpdate = async (newDeadline) => {
@@ -623,6 +718,34 @@ const [selectedUser, setSelectedUser] = useState(null);
           onClose={() => setShowCreateModal(false)}
         />
       )}
+      {showEditProjectModal && selectedProjectForEdit && (
+  <EditProjectModal
+    project={selectedProjectForEdit}
+    onSubmit={handleUpdateProject}
+    onClose={() => {
+      setShowEditProjectModal(false);
+      setSelectedProjectForEdit(null);
+    }}
+  />
+)}
+
+      {showProjectsModal && (
+  <ProjectsListModal
+    projects={projectsData}
+    onClose={() => setShowProjectsModal(false)}
+    onEdit={handleEditProject}
+    onDelete={handleDeleteProject}
+  />
+)}
+
+{showPendingApplicationsModal && (
+  <PendingApplicationsModal
+    applications={pendingApplications}
+    onClose={() => setShowPendingApplicationsModal(false)}
+    onApprove={handleApproveApplication}
+    onReject={handleRejectApplication}
+  />
+)}
 
       {showExcelModal && (
         <ExcelUploadModal
@@ -653,12 +776,7 @@ const [selectedUser, setSelectedUser] = useState(null);
         />
       )}
 
-      {showProjectsModal && (
-        <ProjectsListModal
-          projects={projectsData}
-          onClose={() => setShowProjectsModal(false)}
-        />
-      )}
+     
 
          {showPendingApplicationsModal && (
         <PendingApplicationsModal

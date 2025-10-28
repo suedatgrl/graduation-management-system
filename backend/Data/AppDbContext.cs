@@ -33,8 +33,8 @@ namespace GraduationProjectManagement.Data
                 entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.PasswordHash).IsRequired();
                 
-                entity.HasIndex(e => e.TcIdentityNumber).IsUnique();
-                entity.Property(e => e.TcIdentityNumber).HasMaxLength(11);
+                   entity.HasIndex(e => e.SicilNumber).IsUnique();
+                 entity.Property(e => e.SicilNumber).HasMaxLength(20);
                 
                 entity.HasIndex(e => e.StudentNumber);
                 entity.Property(e => e.StudentNumber).HasMaxLength(20);
@@ -157,8 +157,8 @@ private void SeedData(ModelBuilder modelBuilder)
         PasswordHash = adminPasswordHash,  // ← SABİT HASH
         Role = UserRole.Admin,
         IsActive = true,
-        CreatedAt = seedDate,
-        TcIdentityNumber = "12345678901"
+        CreatedAt = seedDate
+        
     });
 
     // SystemSettings seed

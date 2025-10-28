@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, BookOpen, Users, CheckCircle2 } from 'lucide-react';
+import { X, BookOpen, Users, CheckCircle2,Edit,Trash2 } from 'lucide-react';
 
-const ProjectsListModal = ({ projects, onClose }) => {
+const ProjectsListModal = ({ projects, onClose, onEdit, onDelete}) => {
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
       <div className="relative top-10 mx-auto p-5 border w-full max-w-5xl shadow-lg rounded-md bg-white">
@@ -76,8 +76,25 @@ const ProjectsListModal = ({ projects, onClose }) => {
                         </div>
                       </div>
                     </div>
+                    <div className="flex items-center space-x-2 ml-4">
+                      <button
+                        onClick={() => onEdit && onEdit(project)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Düzenle"
+                      >
+                        <Edit className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => onDelete && onDelete(project.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Sil"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
+                
               ))}
             </div>
           )}

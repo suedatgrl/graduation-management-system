@@ -99,6 +99,82 @@ namespace GraduationProjectManagement.Controllers
             return Ok(new { message = "Alert kaldırıldı." });
         }
         
+         [Authorize]
+        [HttpPost("test/review-deadline-warnings")]
+        public async Task<IActionResult> TestReviewDeadlineWarnings()
+        {
+            try
+            {
+                Console.WriteLine("🧪 Manuel review deadline warning testi başladı...");
+                await _notificationService.SendReviewDeadlineWarningsAsync();
+                return Ok(new
+                {
+                    message = "Review deadline warnings başarıyla kontrol edildi ve gönderildi.",
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Hata: {ex.Message}");
+                return StatusCode(500, new
+                {
+                    message = "Hata oluştu",
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
+        // Tüm endpoint'ler için güncelleme - Review deadline bilgisi
+        [Authorize]
+        [HttpGet("test/review-deadline-info")]
+        public async Task<IActionResult> GetReviewDeadlineInfo()
+        {
+            try
+            {
+                var reviewDeadlineSetting = await _context.SystemSettings
+                    .FirstOrDefaultAsync(s => s.Key == "ReviewDeadline");
+
+                if (reviewDeadlineSetting == null)
+                {
+                    return Ok(new { message = "Review deadline ayarlanmamış" });
+                }
+
+                DateTime.TryParse(reviewDeadlineSetting.Value, out var deadline);
+                var now = DateTime.UtcNow;
+                var daysUntilDeadline = (deadline - now).Days;
+
+                // Bekleyen başvuru sayısını kontrol et
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+                int pendingCount = 0;
+                if (userRole == "Teacher")
+                {
+                    pendingCount = await _context.ProjectApplications
+                        .Include(a => a.Project)
+                        .Where(a => a.Project.TeacherId == userId && a.Status == Models.ApplicationStatus.Pending)
+                        .CountAsync();
+                }
+
+                return Ok(new
+                {
+                    deadline = deadline,
+                    deadlineFormatted = deadline.ToString("dd.MM.yyyy HH:mm"),
+                    now = now,
+                    nowFormatted = now.ToString("dd.MM.yyyy HH:mm"),
+                    daysUntilDeadline = daysUntilDeadline,
+                    isInWarningRange = daysUntilDeadline >= 0 && daysUntilDeadline <= 7,
+                    shouldSendWarning = daysUntilDeadline >= 0 && daysUntilDeadline <= 7,
+                    pendingApplicationsCount = pendingCount,
+                    userRole = userRole
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
 
       
         [HttpPost("test/deadline-warnings")]

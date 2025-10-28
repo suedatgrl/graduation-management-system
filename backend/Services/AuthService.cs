@@ -75,6 +75,17 @@ namespace GraduationProjectManagement.Services
                 return null;
             }
 
+    if (user.Role == UserRole.Student && !string.IsNullOrEmpty(user.StudentNumber))
+    {
+        // Eğer şifre hala öğrenci numarasıysa, zorunlu değiştir
+        if (BCrypt.Net.BCrypt.Verify(user.StudentNumber, user.PasswordHash))
+        {
+            user.MustChangePassword = true;
+            await _context.SaveChangesAsync();  // Database'e kaydet
+        }
+    }
+
+
             var token = GenerateJwtToken(user);
             var userDto = _mapper.Map<UserDto>(user);
 
@@ -147,6 +158,8 @@ namespace GraduationProjectManagement.Services
                 return false;
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+            user.MustChangePassword = false;  
+            user.LastPasswordChangeDate = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return true;

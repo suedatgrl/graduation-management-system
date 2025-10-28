@@ -9,6 +9,11 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.SetMinimumLevel(LogLevel.Information);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -40,8 +45,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Database configuration
+
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
+
 
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -75,13 +83,13 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
+    options.AddPolicy("AllowFrontend",
+        policy => policy
+            .WithOrigins("http://localhost:3001") // frontend adresiniz
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials() // eğer cookie/credentials gönderiyorsanız
+    );
 });
 
 // Service registrations
@@ -98,6 +106,76 @@ builder.Services.AddHostedService<NotificationBackgroundService>();
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    
+    try
+    {
+        logger.LogInformation("⏳ Veritabanı bağlantısı kontrol ediliyor...");
+        
+        var context = services.GetRequiredService<AppDbContext>();
+        
+        // Database'in hazır olmasını bekle (max 30 saniye)
+        int retryCount = 0;
+        while (!context.Database.CanConnect() && retryCount < 30)
+        {
+            logger.LogWarning($"⚠️ Veritabanına bağlanılamadı, tekrar deneniyor... ({retryCount + 1}/30)");
+            await Task.Delay(1000);
+            retryCount++;
+        }
+        
+        if (context.Database.CanConnect())
+        {
+            logger.LogInformation("✅ Veritabanına başarıyla bağlanıldı!");
+            
+            // Bekleyen migration'ları al
+            var pendingMigrations = context.Database.GetPendingMigrations().ToList();
+            
+            if (pendingMigrations.Any())
+            {
+                logger.LogInformation($"⏳ {pendingMigrations.Count} migration çalıştırılıyor...");
+                foreach (var migration in pendingMigrations)
+                {
+                    logger.LogInformation($"   - {migration}");
+                }
+                
+                context.Database.Migrate();
+                logger.LogInformation("✅ Migration'lar başarıyla tamamlandı!");
+            }
+            else
+            {
+                logger.LogInformation("✅ Tüm migration'lar zaten çalıştırılmış.");
+            }
+            
+            // Tabloları listele
+            var tables = context.Model.GetEntityTypes().Select(t => t.GetTableName()).ToList();
+            logger.LogInformation($"📊 Veritabanında {tables.Count} tablo var:");
+            foreach (var table in tables)
+            {
+                logger.LogInformation($"   - {table}");
+            }
+        }
+        else
+        {
+            logger.LogError("❌ Veritabanına bağlanılamadı! 30 saniye içinde bağlantı kurulamadı.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "❌ Migration sırasında hata oluştu!");
+        logger.LogError($"Hata detayı: {ex.Message}");
+        if (ex.InnerException != null)
+        {
+            logger.LogError($"Inner Exception: {ex.InnerException.Message}");
+        }
+        // Uygulamayı durdurmadan devam et
+    }
+}
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

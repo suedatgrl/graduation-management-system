@@ -42,6 +42,13 @@ namespace GraduationProjectManagement.DTOs
         public int MaxStudents { get; set; } = 1;
     }
 
+    public class AssignStudentsDto
+{
+    [Required]
+    [MinLength(1, ErrorMessage = "En az bir öğrenci seçmelisiniz.")]
+    public List<int> StudentIds { get; set; } = new List<int>();
+}
+
     public class UpdateProjectDto
     {
         [Required]

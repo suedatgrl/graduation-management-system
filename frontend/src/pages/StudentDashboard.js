@@ -5,6 +5,7 @@ import ApplicationModal from '../components/ApplicationModal';
 import TeacherProjectsModal from '../components/TeacherProjectsModal';
 import ProjectCard from '../components/ProjectCard';
 import { Search, Filter, BookOpen, Clock, CheckCircle, XCircle, Users, User, AlertCircle, X, Calendar } from 'lucide-react';  // Calendar eklendi
+import ChangePasswordModal from '../components/ChangePasswordModal';  
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -28,6 +29,10 @@ const StudentDashboard = () => {
     const [deadlineInfo, setDeadlineInfo] = useState(null);
   const [deadline, setDeadline] = useState(null);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
+
+  const [users, setUser] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
   // Determine course language from user's course code
   const courseLanguage = user?.courseCode?.startsWith('BLM') ? 'turkish' : 'english';
@@ -54,6 +59,21 @@ const StudentDashboard = () => {
     setHasActiveApplication(!!activeApp);
     setActiveApplication(activeApp);
   }, [myApplications]);
+
+     useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('user'));
+
+    
+    setUser(userData);
+    
+    // İlk giriş kontrolü
+    if (userData && userData.mustChangePassword === true) {
+      console.log('✅ Zorunlu şifre değiştirme modalı açılıyor...');
+      setMustChangePassword(true);
+      setShowPasswordModal(true);
+    }
+  }, []);
+
 
   //  Son tarih kontrolü
   useEffect(() => {
@@ -119,14 +139,14 @@ const StudentDashboard = () => {
   };
 
 
-    const fetchDeadlineInfo = async () => {
+   /* const fetchDeadlineInfo = async () => {
     try {
       const info = await notificationService.getDeadlineInfo();
       setDeadlineInfo(info);
     } catch (error) {
       console.error('Deadline bilgisi alınamadı:', error);
     }
-  };
+  }; */
   const filterProjects = () => {
     if (!searchTerm) {
       setFilteredProjects(projects);
@@ -276,7 +296,22 @@ const StudentDashboard = () => {
       </div>
     );
   }
-
+if (mustChangePassword && showPasswordModal) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <ChangePasswordModal
+          isOpen={showPasswordModal}
+          onClose={() => {
+            // Zorunlu ise kapatılmasın
+            if (!mustChangePassword) {
+              setShowPasswordModal(false);
+            }
+          }}
+          isRequired={mustChangePassword}
+        />
+      </div>
+    );
+  }
 
 return (
   <div className="space-y-6">

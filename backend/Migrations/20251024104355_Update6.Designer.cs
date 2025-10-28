@@ -3,6 +3,7 @@ using System;
 using GraduationProjectManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GraduationProjectManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251024104355_Update6")]
+    partial class Update6
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -317,13 +320,13 @@ namespace GraduationProjectManagement.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
-                    b.Property<string>("SicilNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
                     b.Property<string>("StudentNumber")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TcIdentityNumber")
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)");
 
                     b.Property<int?>("TotalQuota")
                         .HasColumnType("integer");
@@ -333,10 +336,10 @@ namespace GraduationProjectManagement.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("SicilNumber")
-                        .IsUnique();
-
                     b.HasIndex("StudentNumber");
+
+                    b.HasIndex("TcIdentityNumber")
+                        .IsUnique();
 
                     b.ToTable("Users");
 
@@ -351,7 +354,8 @@ namespace GraduationProjectManagement.Migrations
                             LastName = "User",
                             MustChangePassword = false,
                             PasswordHash = "$2a$11$NSBPgA.VcvWwJIqf7eIRjemdwb.lD64GjdSu7Z2Wuy6By4kG.H2A2",
-                            Role = 3
+                            Role = 3,
+                            TcIdentityNumber = "12345678901"
                         });
                 });
 

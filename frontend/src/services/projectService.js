@@ -91,6 +91,37 @@ async reviewApplication(applicationId, status, reviewNotes) {
   });
   return response.data;
 }
+
+  async getAvailableStudents(courseCode) {
+    try {
+      console.log('🔍 Requesting available students...');
+      console.log('📍 URL:', `${API_URL}/Projects/available-students`);
+      console.log('📦 Course Code:', courseCode);
+      console.log('🔑 Token exists:', !!localStorage.getItem('token'));
+
+      const response = await axios.get(`${API_URL}/projects/available-students`, {
+        params: { courseCode },
+        headers: this.getAuthHeaders()
+      });
+
+      console.log('✅ Students response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ getAvailableStudents error:', error);
+      console.error('❌ Response:', error.response?.data);
+      console.error('❌ Status:', error.response?.status);
+      throw error;
+    }
+  }
+
+async assignStudentsToProject(projectId, studentIds) {
+  const response = await axios.post(
+    `${API_URL}/projects/${projectId}/assign-students`,
+    { studentIds },
+    { headers: this.getAuthHeaders() }
+  );
+  return response.data;
+}
 }
 
 export default new ProjectService();

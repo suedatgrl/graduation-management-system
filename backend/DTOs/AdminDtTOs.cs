@@ -17,10 +17,7 @@ namespace GraduationProjectManagement.DTOs
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
         
-        [Required]
-        [StringLength(11, MinimumLength = 11)]
-        [RegularExpression(@"^\d{11}$", ErrorMessage = "TC Identity Number must be exactly 11 digits")]
-        public string TcIdentityNumber { get; set; } = string.Empty;
+       
         
         [Required]
         public string StudentNumber { get; set; } = string.Empty;
@@ -45,8 +42,8 @@ namespace GraduationProjectManagement.DTOs
 
         [Required]
         [StringLength(11, MinimumLength = 11)]
-        [RegularExpression(@"^\d{11}$", ErrorMessage = "TC Identity Number must be exactly 11 digits")]
-        public string TcIdentityNumber { get; set; } = string.Empty;
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "Sicil Numarası must be exactly 11 digits")]
+        public string SicilNumber { get; set; } = string.Empty;
         
         [Required]
         [Range(1, 11, ErrorMessage = "Toplam kontenjan 1-10 arasında olmalıdır.")]

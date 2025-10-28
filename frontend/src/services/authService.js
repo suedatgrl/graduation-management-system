@@ -5,7 +5,20 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 class AuthService {
   async login(credentials) {
     const response = await axios.post(`${API_URL}/auth/login`, credentials);
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
+    
+    if (response.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      console.log('💾 User saved to localStorage:', response.data.user);  // DEBUG
+    }
     return response.data;
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }
 
   async getCurrentUser() {
@@ -39,6 +52,19 @@ class AuthService {
     });
     return response.data;
   }
+
+  async getCurrentUserFromAPI() {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  }
+
+
+
+
+
 }
 
 export default new AuthService();

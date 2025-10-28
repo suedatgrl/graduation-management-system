@@ -204,19 +204,6 @@ const Settings = () => {
                   </div>
                 )}
 
-                {user?.tcIdentityNumber && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      TC Kimlik Numarası
-                    </label>
-                    <input
-                      type="text"
-                      value={user.tcIdentityNumber}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                    />
-                  </div>
-                )}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

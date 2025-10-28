@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, User, Users, BookOpen, AlertTriangle, Bell, BellOff } from 'lucide-react';
+import { Calendar, User, Users,UserPlus, BookOpen, AlertTriangle, Bell, BellOff } from 'lucide-react';
 import notificationService from '../services/notificationService';
 
 const ProjectCard = ({ 
@@ -8,6 +8,7 @@ const ProjectCard = ({
   onEdit, 
   onViewApplications, 
   userRole, 
+  onAssignStudents,
   appliedProjects = [], 
   hasActiveApplication = false,
   isDeadlinePassed = false
@@ -22,6 +23,8 @@ const ProjectCard = ({
   
   const [hasQuotaAlert, setHasQuotaAlert] = useState(false);
   const [alertLoading, setAlertLoading] = useState(false);
+
+
 
   const isApplyDisabled = isStudent && (
     hasApplied || 
@@ -154,8 +157,11 @@ const ProjectCard = ({
           </div>
         </div>
           
-        <p className="text-gray-700 text-sm leading-relaxed mb-3">
+        <p className="text-gray-900 text-sm leading-relaxed mb-3">
           {project.description}
+        </p>
+        <p className="text-gray-700 text-sm leading-relaxed mb-3">
+          {project.details}
         </p>
       </div>
 
@@ -203,11 +209,23 @@ const ProjectCard = ({
               <Users className="h-4 w-4" />
               <span>Başvurular ({project.totalApplications || 0}/{project.maxApplications})</span>
             </button>
+                <button
+      onClick={() => onAssignStudents && onAssignStudents(project)}
+      className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center space-x-2"
+      disabled={project.currentStudents >= project.maxStudents}
+      title={project.currentStudents >= project.maxStudents ? 'Kontenjan dolu' : 'Projeye öğrenci ata'}
+    >
+      <UserPlus className="h-4 w-4" />
+      <span>Öğrenci Ata</span>
+    </button>
+
           </>
         )}
       </div>
     </div>
+    
   );
+
 };
 
 export default ProjectCard;

@@ -12,5 +12,6 @@ namespace GraduationProjectManagement.Services
         Task<bool> DeleteProjectAsync(int id, int teacherId);
         Task RefreshProjectCountersAsync(int projectId); // Yeni metod
          Task<IEnumerable<ProjectDto>> GetAllProjectsAsync( string courseCode);
+         Task<bool> AssignStudentsToProjectAsync(int projectId, List<int> studentIds, int teacherId);
     }
 }

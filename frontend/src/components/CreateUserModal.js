@@ -6,7 +6,7 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
     firstName: '',
     lastName: '',
     email: '',
-    tcIdentityNumber: '',
+    sicilNumber: '',
     role: 1, // Default to Student
     // Student specific
     studentNumber: '',
@@ -135,22 +135,7 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
             />
           </div>
 
-          <div>
-            <label htmlFor="tcIdentityNumber" className="block text-sm font-medium text-gray-700 mb-2">
-              TC Kimlik Numarası
-            </label>
-            <input
-              type="text"
-              id="tcIdentityNumber"
-              name="tcIdentityNumber"
-              value={formData.tcIdentityNumber}
-              onChange={handleChange}
-              required
-              maxLength="11"
-              pattern="[0-9]{11}"
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+     
 
           {/* Student Specific Fields */}
           {formData.role === 1 && (
@@ -190,6 +175,7 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
 
           {/* Teacher Specific Fields */}
           {formData.role === 2 && (
+            <>
             <div>
               <label htmlFor="totalQuota" className="block text-sm font-medium text-gray-700 mb-2">
                 Toplam Kontenjan
@@ -209,6 +195,26 @@ const CreateUserModal = ({ onSubmit, onClose }) => {
                 Bu öğretim üyesinin danışmanlık yapabileceği toplam öğrenci sayısı
               </p>
             </div>
+
+          <div>
+            <label htmlFor="sicilNumber" className="block text-sm font-medium text-gray-700 mb-2">
+              Sicil Numarası
+            </label>
+            <input
+              type="text"
+              id="sicilNumber"
+              name="sicilNumber"
+              value={formData.sicilNumber}
+              onChange={handleChange}
+              required
+              maxLength="11"
+              pattern="[0-9]{11}"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+            
+            </>
+            
           )}
 
           {error && (

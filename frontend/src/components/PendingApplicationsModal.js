@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, Clock, User, BookOpen, Calendar } from 'lucide-react';
+import { X, Clock, User, BookOpen, Calendar, CheckCircle, XCircle } from 'lucide-react';
 
-const PendingApplicationsModal = ({ applications, onClose }) => {
+const PendingApplicationsModal = ({ applications, onClose, onApprove, onReject }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
@@ -70,10 +70,24 @@ const PendingApplicationsModal = ({ applications, onClose }) => {
                       </div>
                     </div>
 
-                    <div className="flex items-center">
-                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                        Beklemede
-                      </span>
+                    {/* YENİ: Onayla ve Reddet Butonları */}
+                    <div className="flex flex-col space-y-2 ml-4">
+                      <button
+                        onClick={() => onApprove && onApprove(application.id)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                        title="Başvuruyu Onayla"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        <span>Onayla</span>
+                      </button>
+                      <button
+                        onClick={() => onReject && onReject(application.id)}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+                        title="Başvuruyu Reddet"
+                      >
+                        <XCircle className="h-4 w-4" />
+                        <span>Reddet</span>
+                      </button>
                     </div>
                   </div>
                 </div>

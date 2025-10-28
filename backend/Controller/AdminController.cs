@@ -228,5 +228,52 @@ namespace GraduationProjectManagement.Controller
         {
             public string Value { get; set; } = string.Empty;
         }
+
+        [Authorize(Roles = "Admin")]
+[HttpPut("projects/{projectId}")]
+public async Task<IActionResult> UpdateProject(int projectId, [FromBody] UpdateProjectDto dto)
+{
+    try
+    {
+        var project = await _adminService.UpdateProjectAsAdminAsync(projectId, dto);
+        return Ok(new { message = "Proje başarıyla güncellendi.", project });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+
+[Authorize(Roles = "Admin")]
+[HttpDelete("projects/{projectId}")]
+public async Task<IActionResult> DeleteProject(int projectId)
+{
+    var result = await _adminService.DeleteProjectAsAdminAsync(projectId);
+    
+    if (!result)
+        return NotFound(new { message = "Proje bulunamadı." });
+
+    return Ok(new { message = "Proje başarıyla silindi." });
+}
+
+[Authorize(Roles = "Admin")]
+[HttpPut("applications/{applicationId}/review")]
+public async Task<IActionResult> ReviewApplication(int applicationId, [FromBody] ReviewApplicationDto dto)
+{
+    try
+    {
+        var result = await _adminService.ReviewApplicationAsAdminAsync(applicationId, dto.Status, dto.ReviewNotes);
+        
+        if (!result)
+            return NotFound(new { message = "Başvuru bulunamadı." });
+
+        return Ok(new { message = "Başvuru başarıyla değerlendirildi." });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+
     }
 }

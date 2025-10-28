@@ -210,6 +210,59 @@ namespace GraduationProjectManagement.Services
             throw new NotImplementedException();
         }
 
-      
+ 
+
+
+public async Task<bool> AssignStudentsToProjectAsync(int projectId, List<int> studentIds, int teacherId)
+{
+    var project = await _context.Projects
+        .Include(p => p.Applications)
+        .FirstOrDefaultAsync(p => p.Id == projectId && p.TeacherId == teacherId && p.IsActive);
+
+    if (project == null)
+        return false;
+
+    // Kontenjan kontrolü
+    var currentApproved = project.Applications.Count(a => a.Status == ApplicationStatus.Approved);
+    if (currentApproved + studentIds.Count > project.MaxStudents)
+    {
+        throw new InvalidOperationException("Seçilen öğrenci sayısı kontenjanı aşıyor.");
+    }
+
+    foreach (var studentId in studentIds)
+    {
+        // Öğrenci zaten başvurmuş mu kontrol et
+        var existingApplication = await _context.ProjectApplications
+            .FirstOrDefaultAsync(a => a.ProjectId == projectId && a.StudentId == studentId);
+
+        if (existingApplication == null)
+        {
+            // Yeni başvuru oluştur
+            var application = new ProjectApplication
+            {
+                ProjectId = projectId,
+                StudentId = studentId,
+                Status = ApplicationStatus.Approved,
+                AppliedAt = DateTime.UtcNow,
+                ReviewedAt = DateTime.UtcNow,
+                ReviewNotes = "Öğretmen tarafından manuel olarak atandı."
+            };
+            _context.ProjectApplications.Add(application);
+        }
+        else if (existingApplication.Status == ApplicationStatus.Pending)
+        {
+            // Bekleyen başvuruyu onayla
+            existingApplication.Status = ApplicationStatus.Approved;
+            existingApplication.ReviewedAt = DateTime.UtcNow;
+            existingApplication.ReviewNotes = "Öğretmen tarafından manuel olarak onaylandı.";
+        }
+    }
+
+    await _context.SaveChangesAsync();
+    await RefreshProjectCountersAsync(projectId);
+
+    return true;
+}
+
     }
 }

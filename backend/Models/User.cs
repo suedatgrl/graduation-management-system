@@ -30,7 +30,8 @@ namespace GraduationProjectManagement.Models
         public string? CourseCode { get; set; } // BLM for Turkish, COM for English
         
         // Common field for both students and teachers
-        public string? TcIdentityNumber { get; set; }
+   
+        public string? SicilNumber {get; set;} //öğretmen için sicil no
 
          public int? TotalQuota { get; set; } //öğretmen için toplam kontenjan
         
@@ -40,6 +41,10 @@ namespace GraduationProjectManagement.Models
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; } = true;
+
+     
+        public bool MustChangePassword { get; set; } = false;
+        public DateTime? LastPasswordChangeDate { get; set; }
         
         // Navigation properties
          public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
